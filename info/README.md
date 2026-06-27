@@ -14,6 +14,10 @@ step's cost + quality, so it also tells you **where you're overpaying** and cuts
 
 > One line: **"Run the cheap model. Bongo makes it reliable, and cuts your bill."**
 
+> 👷 **Building? Read [`../TEAM-BUILD-PLAN.md`](../TEAM-BUILD-PLAN.md).** It has the work split
+> (Håkan/Claude-side vs **Filip — START HERE**) and idiot-proof step-by-step tasks. **Filip:
+> open that file, scroll to "FILIP — START HERE".**
+
 ## Doc layers (know which you're reading)
 
 1. **Canonical / the truth:** [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) — if anything
