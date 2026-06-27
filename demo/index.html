@@ -78,6 +78,16 @@
   .k{color:var(--bongo2)} .c{color:#5d6685}
   .wedge{color:var(--dim);font-size:13px;margin-top:12px;border-left:2px solid var(--bongo);padding-left:10px}
   footer{margin-top:34px;color:var(--dim);font-size:12px;text-align:center}
+  .tout{font:11px/1.5 ui-monospace,Menlo,monospace;margin:3px 0 7px 23px;padding:6px 9px;border-radius:7px;white-space:pre-wrap}
+  .tout.fail{color:#ffb3bb;background:rgba(255,77,94,.10);border:1px solid rgba(255,77,94,.3)}
+  .tout.pass{color:#b6f0cb;background:rgba(46,213,115,.10);border:1px solid rgba(46,213,115,.3)}
+  .herowedge{margin-top:14px;text-align:center;color:var(--dim);font-size:13px}
+  .herowedge b{color:var(--bongo2)}
+  .conn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .conn-row input,.conn-row select{background:#0c0e17;border:1px solid var(--line);border-radius:9px;
+    color:var(--txt);padding:10px 12px;font-size:13px}
+  .conn-row input{flex:1;min-width:200px}
+  .conn-note{font-size:11px;color:var(--dim);margin-top:6px}
 </style>
 
 <div class="wrap">
@@ -109,6 +119,8 @@
     </div>
   </div>
 
+  <div class="herowedge">Bongo escalates <b>one step</b>, <b>after a real test fails</b>, mid-run — to a model on <b>a different provider</b>. Not a router.</div>
+
   <div class="board" id="board">
     <div class="cards" id="cards"></div>
     <div class="headline" id="headline"></div>
@@ -121,6 +133,17 @@ client = OpenAI(
     base_url=<span class="k">"https://api.bongo.dev/v1"</span>,   <span class="c"># &lt;- the only change</span>
     api_key=YOUR_KEY,
 )</pre>
+    <div class="conn-row">
+      <input placeholder="Paste your API key (passes through, never stored)" />
+      <select>
+        <option>Mistral (cheap)</option>
+        <option>OpenAI</option>
+        <option>Anthropic</option>
+        <option>Gemini</option>
+        <option>Open model (HF)</option>
+      </select>
+    </div>
+    <div class="conn-note">Bring your own key, any provider. Bongo verifies each step and escalates only the failures.</div>
     <div class="wedge"><b>Not a router.</b> Routers pick a model up front and lock it for the whole run.
       Bongo escalates <b>one step</b>, <b>after</b> a verification fails, mid-run — across providers a single lab can't reach.</div>
   </div>
@@ -135,10 +158,15 @@ const ICON = {pass:"✓", fail:"✕", catch:"⚡", escalate:"↗", ok:"·"};
 
 function stepRow(s){
   const cls = ({pass:"pass",fail:"fail",catch:"catch",ok:""})[s.status] ?? "";
-  const c2 = s.model==="strong" && s.status==="ok" ? "escalate" : cls;
-  const ic = s.status==="ok" && s.model==="strong" ? ICON.escalate : (ICON[s.status]||ICON.ok);
+  const esc = s.role==="strong" && s.status==="ok";
+  const c2 = esc ? "escalate" : cls;
+  const ic = esc ? ICON.escalate : (ICON[s.status]||ICON.ok);
+  const badge = s.provider ? `<span class="mdl">${s.provider}·${s.model}</span>` : "";
+  // show the REAL test output for verify steps — proves it isn't faked
+  const out = (s.output && (s.status==="pass"||s.status==="fail"))
+     ? `<div class="tout ${s.status}">${s.checker?("["+s.checker+"] "):""}${s.output}</div>` : "";
   return `<div class="step ${c2}"><span class="ic">${ic}</span>
-    <span class="mdl">${s.model}</span><span>${s.label} — ${s.detail}</span></div>`;
+    ${badge}<span>${s.label} — ${s.detail}</span></div>${out}`;
 }
 
 function taskCard(r, side){

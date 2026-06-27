@@ -3,17 +3,29 @@ Bongo demo engine — the PROOF.
 
 Real coding tasks, REAL deterministic verification (we actually run the tests — no AI
 judging AI), and the Bongo reliability loop: cheap model -> verify -> on fail, escalate
-THAT step to a strong model -> verify -> pass.
+THAT step to a strong model on a DIFFERENT provider -> verify -> pass.
 
 Model outputs are PINNED (staged) so the demo always fires on stage — cheap LLMs are
 non-deterministic, so we don't gamble on that live. The VERIFY step is the only thing that
 is genuinely computed, and it's deterministic (run the unit tests).
+
+For a genuinely-real cross-provider escalation (Mistral -> Anthropic/OpenAI) using your own
+keys, see demo/real_proof.py.
 
 Relative cost units (realistic-ish): a frontier "strong" model ~= 20x a cheap one.
 Run:  python3 demo/scenarios.py     # prints the aggregate scoreboard
 """
 
 COST = {"cheap": 1, "strong": 20}
+
+# Cross-provider identity — Bongo is vendor-neutral. The cheap model and the strong model
+# we escalate to are on DIFFERENT providers (a single lab will never route you off itself).
+PROVIDER = {
+    "cheap":    {"provider": "Mistral",   "model": "mistral-small"},
+    "strong":   {"provider": "Anthropic", "model": "claude-sonnet"},
+    "verifier": {"provider": "Bongo",     "model": "deterministic"},
+    "bongo":    {"provider": "Bongo",     "model": "reliability-layer"},
+}
 
 # ---------------------------------------------------------------------------
 # The tasks. Each has REAL unit tests. cheap_code is what the cheap model "wrote"
@@ -171,29 +183,58 @@ TASKS = [
 ]
 
 
-def verify(code, tests):
-    """REAL deterministic check: execute the code, then run the unit tests.
-    Returns (passed: bool, detail: str). No AI involved — reality is the judge."""
+# ---------------------------------------------------------------------------
+# Pluggable verifier registry. Bongo's "how do we know a step is wrong?" is NOT one
+# if-statement and NOT an LLM judging an LLM — it's a registry of cheap, deterministic
+# checkers. The demo leads with `run-tests` (free ground truth); the others ship too.
+# ---------------------------------------------------------------------------
+def _check_run_tests(code, spec):
+    """Execute the candidate code, then run real unit tests. Reality is the judge."""
     ns = {}
     try:
         exec(code, ns)
     except Exception as e:
         return False, f"code did not run: {type(e).__name__}: {e}"
     try:
-        exec(tests, ns)
+        exec(spec, ns)
     except AssertionError:
-        # find the first failing assertion line for a human-readable reason
-        for line in tests.strip().splitlines():
+        for line in spec.strip().splitlines():
             try:
                 exec(line, ns)
             except AssertionError:
-                return False, f"failed: {line.strip()}"
+                return False, f"FAILED: {line.strip()}"
             except Exception as e:
-                return False, f"errored on: {line.strip()} ({type(e).__name__})"
+                return False, f"ERROR on {line.strip()} ({type(e).__name__})"
         return False, "a test assertion failed"
     except Exception as e:
         return False, f"test error: {type(e).__name__}: {e}"
     return True, "all tests passed"
+
+
+def _check_json_schema(obj_text, required):
+    """Deterministic structured-output check (shared shape with reliability.py:check_meeting)."""
+    import json
+    try:
+        obj = json.loads(obj_text)
+    except Exception as e:
+        return False, f"invalid JSON: {e}"
+    for f in required:
+        if f not in obj:
+            return False, f"missing field '{f}'"
+    return True, "schema valid"
+
+
+# the registry — surfaced in the UI so judges see it's a verification *system*
+CHECKERS = {
+    "run-tests":   _check_run_tests,    # code: execute + assert (used in this demo)
+    "json-schema": _check_json_schema,  # structured output: required fields/types
+    # "tool-args", "citation-exists", "recompute-math" ... same pattern, deterministic
+}
+
+
+def verify(code, tests, checker="run-tests"):
+    """Run a deterministic checker. Returns (passed, detail)."""
+    return CHECKERS[checker](code, tests)
 
 
 def run_task(task, mode):
@@ -202,8 +243,14 @@ def run_task(task, mode):
     steps = []
     cost = 0
 
-    def step(label, model, detail, status):
-        steps.append({"label": label, "model": model, "detail": detail, "status": status})
+    def step(label, role, detail, status, checker=None, output=None):
+        p = PROVIDER[role]
+        steps.append({
+            "label": label, "role": role,
+            "provider": p["provider"], "model": p["model"],
+            "detail": detail, "status": status,
+            "checker": checker, "output": output,
+        })
 
     # --- generation step ---
     if mode == "strong":
@@ -217,21 +264,23 @@ def run_task(task, mode):
         cost += COST["cheap"]
         code = task["cheap_code"]
 
-    # --- verify step (REAL) ---
-    passed, detail = verify(code, task["tests"])
-    step("Verify — run tests", "verifier", detail, "pass" if passed else "fail")
+    # --- verify step (REAL, deterministic) ---
+    passed, detail = verify(code, task["tests"], "run-tests")
+    step("Verify — run tests", "verifier", detail,
+         "pass" if passed else "fail", checker="run-tests", output=detail)
 
     fixed_by = mode
-    # --- Bongo intervention: escalate ONLY the failing step ---
+    # --- Bongo intervention: escalate ONLY the failing step, to a DIFFERENT provider ---
     if mode == "bongo" and not passed:
         step("Bongo: silent failure caught", "bongo",
              "tests failed but no error was thrown — escalating just this step", "catch")
-        step("Escalate this step to a strong model", "strong",
-             f"re-generated {task['name']}() with a stronger model", "ok")
+        step(f"Escalate this step to {PROVIDER['strong']['provider']}", "strong",
+             f"re-generated {task['name']}() with a stronger model on another provider", "ok")
         cost += COST["strong"]
         code = task["strong_code"]
-        passed, detail = verify(code, task["tests"])
-        step("Verify — run tests", "verifier", detail, "pass" if passed else "fail")
+        passed, detail = verify(code, task["tests"], "run-tests")
+        step("Verify — run tests", "verifier", detail,
+             "pass" if passed else "fail", checker="run-tests", output=detail)
         fixed_by = "bongo-escalation"
 
     return {
@@ -278,10 +327,11 @@ def run_all():
         "bongo_reliability": bg["reliability"],
         "cheap_reliability": cb["reliability"],
         "savings_vs_strong_pct": round(100 * (st["cost_units"] - bg["cost_units"]) / st["cost_units"]),
+        "bongo_cost_pct_of_strong": round(100 * bg["cost_units"] / st["cost_units"]),
         "cheap_broken_shipped": cb["broken_shipped"],
     }
     return {"results": results, "scoreboard": scoreboard, "headline": headline,
-            "cost_model": COST}
+            "cost_model": COST, "providers": PROVIDER, "checkers": list(CHECKERS)}
 
 
 if __name__ == "__main__":
@@ -296,5 +346,8 @@ if __name__ == "__main__":
         print(f"  {name:24s}  reliability {s['reliability']:3d}%   "
               f"${s['cost_per_1k_usd']:>7}/1k   broken shipped: {s['broken_shipped']}")
     print(f"\n  -> Bongo: {h['bongo_reliability']}% reliable (vs cheap {h['cheap_reliability']}%), "
-          f"{h['savings_vs_strong_pct']}% cheaper than the expensive model.")
-    print(f"  -> Cheap-alone silently shipped {h['cheap_broken_shipped']} broken results.\n")
+          f"{h['savings_vs_strong_pct']}% cheaper than the expensive model "
+          f"({h['bongo_cost_pct_of_strong']}% of its cost).")
+    print(f"  -> Cheap-alone silently shipped {h['cheap_broken_shipped']} broken results.")
+    print(f"  -> Cross-provider: cheap={PROVIDER['cheap']['provider']} -> "
+          f"escalate={PROVIDER['strong']['provider']}.  Checkers: {', '.join(data['checkers'])}.\n")
