@@ -1,4 +1,4 @@
-// Bongo live demo — REAL model calls + REAL ground-truth checks. No mock data.
+// Plumbline live demo — REAL model calls + REAL ground-truth checks. No mock data.
 // Cheap model answers -> deterministic check vs known answer -> escalate the failures to a strong model.
 // Needs a server-side secret: MISTRAL_API_KEY  (set with: wrangler secret put MISTRAL_API_KEY)
 
@@ -50,7 +50,7 @@ async function runTask(env, t) {
     return trace;
   }
 
-  // 2) Bongo caught a wrong answer -> escalate ONLY this task to the strong model (REAL call)
+  // 2) Plumbline caught a wrong answer -> escalate ONLY this task to the strong model (REAL call)
   const strongAns = await callModel(env, STRONG, t.q);
   const strongOk = check(strongAns, t.a);
   trace.steps.push({ role: "verifier", model: "bongo", answer: "cheap answer failed the ground-truth check", ok: false });
@@ -95,7 +95,7 @@ export default {
 };
 
 const PAGE = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bongo — live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Plumbline — live</title>
 <style>
 :root{--bg:#06080a;--panel:#0d0f15;--line:#1b1f2b;--text:#eaf1f6;--muted:#7b8a98;--green:#22e3a0;--red:#ff5d6c;--amber:#ffc861;--sans:-apple-system,"SF Pro Display",system-ui,sans-serif;--mono:"SF Mono",ui-monospace,Menlo,monospace}
 *{margin:0;padding:0;box-sizing:border-box}body{background:radial-gradient(1000px 500px at 50% -10%,#10161f,var(--bg));color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;justify-content:center;padding:42px 20px}
@@ -121,9 +121,9 @@ h1{font-size:30px;font-weight:750;letter-spacing:-.02em;margin:10px 0 4px}
 .err{color:var(--red);font-family:var(--mono);font-size:13px;margin-top:14px}
 .foot{margin-top:22px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 </style></head><body><div class="wrap">
-<div class="eyebrow"><span class="dot"></span> Bongo · live · real model calls</div>
+<div class="eyebrow"><span class="dot"></span> Plumbline · live · real model calls</div>
 <h1>Watch a cheap AI get caught, and fixed.</h1>
-<div class="sub">A cheap model answers. Bongo checks each answer against the real correct answer. The ones it gets wrong, Bongo catches and escalates to a stronger model.</div>
+<div class="sub">A cheap model answers. Plumbline checks each answer against the real correct answer. The ones it gets wrong, Plumbline catches and escalates to a stronger model.</div>
 <div class="tag">real Mistral API calls · checked against ground truth · nothing pre-recorded</div>
 <button class="run" id="run">▶ Run it live</button>
 <div id="out"></div>
@@ -145,7 +145,7 @@ $("#run").addEventListener("click",async()=>{
     else{
       for(const s of r.steps){
         if(s.role==="cheap") h+='<div class="line cheap"><span>cheap ('+s.model+'): '+s.answer+'</span><span class="badge '+(s.ok?'good':'bad')+'">'+(s.ok?'correct':'WRONG')+'</span></div>';
-        else if(s.role==="verifier") h+='<div class="line verif">↳ Bongo checked it against the real answer ('+r.expected+') → caught the mistake</div>';
+        else if(s.role==="verifier") h+='<div class="line verif">↳ Plumbline checked it against the real answer ('+r.expected+') → caught the mistake</div>';
         else if(s.role==="strong") h+='<div class="line strong"><span>strong ('+s.model+'): '+s.answer+'</span><span class="badge '+(s.ok?'good':'bad')+'">'+(s.ok?'fixed':'still wrong')+'</span></div>';
       }
       const cls=r.verdict==="VERIFIED"?"vgood":(r.verdict==="CAUGHT + FIXED"?"vfix":"vbad");
@@ -156,7 +156,7 @@ $("#run").addEventListener("click",async()=>{
     await new Promise(r=>setTimeout(r,350));
   }
   const s=data.summary;
-  $("#boardtext").innerHTML='Cheap model alone got <b>'+s.cheap_alone_correct+'/'+s.total+'</b> right. Bongo caught the rest and fixed <b>'+s.caught_and_fixed+'</b> by escalating only those to the strong model. Same cheap model, now trustworthy.';
+  $("#boardtext").innerHTML='Cheap model alone got <b>'+s.cheap_alone_correct+'/'+s.total+'</b> right. Plumbline caught the rest and fixed <b>'+s.caught_and_fixed+'</b> by escalating only those to the strong model. Same cheap model, now trustworthy.';
   $("#board").classList.add("show");
   b.disabled=false;b.textContent="▶ Run again";
 });
