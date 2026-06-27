@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bongo</title>
+<style>
+  :root{
+    --bg:#06080a; --panel:#0c1016; --line:#1a212b; --text:#eaf1f6; --muted:#7b8a98;
+    --green:#22e3a0; --red:#ff5d6c; --blue:#5fa8ff; --amber:#ffc861;
+    --sans:-apple-system,"SF Pro Display",BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1000px 500px at 50% -10%,#0e1620,var(--bg));color:var(--text);
+    font-family:var(--sans);min-height:100vh;padding:42px 22px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:740px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);display:flex;gap:9px;align-items:center}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:p 1.6s infinite}
+  @keyframes p{50%{opacity:.3}}
+  h1{font-size:30px;font-weight:750;letter-spacing:-.02em;margin:10px 0 2px}
+  .sub{color:var(--muted);font-size:14.5px;margin-bottom:26px}
+  .hero{background:linear-gradient(180deg,var(--panel),#080b10);border:1px solid var(--line);border-radius:18px;padding:30px;text-align:center;position:relative;overflow:hidden}
+  .hero .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .big{font-size:74px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:6px 0;
+    color:var(--green);text-shadow:0 0 40px rgba(34,227,160,.35)}
+  .cut{font-size:15px;color:var(--text)}
+  .cut b{color:var(--green)}
+  .bar{height:14px;border-radius:8px;background:#1a2230;margin:22px 0 6px;overflow:hidden;display:flex}
+  .bar .paid{background:linear-gradient(90deg,#2a3340,#3a4658);height:100%}
+  .bar .saved{background:linear-gradient(90deg,var(--green),#19b07e);height:100%}
+  .barlbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .row{display:flex;gap:14px;margin-top:16px}
+  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .n{font-size:26px;font-weight:700}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:2px}
+  .feed{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;font-family:var(--mono);font-size:12.5px}
+  .ev{display:flex;justify-content:space-between;padding:8px 12px;border-radius:8px}
+  .ev.c{color:var(--green)}.ev.b{color:var(--muted)}
+  .pill{font-size:10px;padding:2px 8px;border-radius:20px}
+  .pill.c{background:rgba(34,227,160,.12);color:var(--green)}
+  .pill.b{background:rgba(255,255,255,.05);color:var(--muted)}
+  .foot{margin-top:20px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .code{background:#0a0e13;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:12.5px;color:#bfe6ff;margin-top:8px;text-align:left}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span class="dot"></span> Bongo &middot; live</div>
+  <h1>Your AI bill, cut on the way out.</h1>
+  <div class="sub">One line. Point your app at Bongo, keep your key. Built for agents that resend the same context all day.</div>
+
+  <div class="hero">
+    <div class="lbl">saved so far</div>
+    <div class="big" id="saved">$0.0000</div>
+    <div class="cut">bill cut by <b id="cut">0%</b> &middot; would have been <span id="would">$0.0000</span></div>
+    <div class="bar"><div class="paid" id="paidbar" style="width:100%"></div><div class="saved" id="savedbar" style="width:0%"></div></div>
+    <div class="barlbl"><span>actually paid</span><span>saved by Bongo</span></div>
+  </div>
+
+  <div class="row">
+    <div class="stat"><div class="n" id="req">0</div><div class="k">requests</div></div>
+    <div class="stat"><div class="n" id="hr">0%</div><div class="k">cache hit rate</div></div>
+    <div class="stat"><div class="n" id="tok">0</div><div class="k">tokens saved</div></div>
+  </div>
+
+  <div class="feed" id="feed"></div>
+
+  <div class="code">client = OpenAI(base_url=<span style="color:var(--green)">"https://bongo.dev/v1"</span>, api_key=YOUR_KEY)</div>
+  <div class="foot">drop-in, OpenAI-compatible &middot; your key, your control</div>
+</div>
+<script>
+async function tick(){
+  try{
+    const s = await (await fetch('/stats')).json();
+    const paid = s.cost_billed, saved = s.cost_saved, total = paid+saved;
+    document.getElementById('saved').textContent = '$'+saved.toFixed(4);
+    document.getElementById('would').textContent = '$'+total.toFixed(4);
+    const cut = total? Math.round(saved/total*100):0;
+    document.getElementById('cut').textContent = cut+'%';
+    document.getElementById('req').textContent = s.requests;
+    document.getElementById('hr').textContent = Math.round((s.hit_rate||0)*100)+'%';
+    document.getElementById('tok').textContent = s.tokens_saved;
+    document.getElementById('savedbar').style.width = cut+'%';
+    document.getElementById('paidbar').style.width = (100-cut)+'%';
+    const feed = document.getElementById('feed');
+    feed.innerHTML = (s.events||[]).slice().reverse().map(e=>
+      `<div class="ev ${e.cached?'c':'b'}"><span>${e.cached?'served from cache':'forwarded to API'}</span>`+
+      `<span class="pill ${e.cached?'c':'b'}">${e.cached?'+'+e.saved+' tok saved':'billed'}</span></div>`).join('');
+  }catch(e){}
+}
+setInterval(tick,400); tick();
+</script>
+</body>
+</html>
