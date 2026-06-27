@@ -3,12 +3,16 @@
 Running list of people who've committed interest. Show this to judges as traction.
 Keep it honest: "LOI / verbal commit," not "revenue."
 
-## 1. Data-tools migration prospect  (NEW — verbal LOI)
-- **Status:** Gave an LOI by message ("consider this reply as my LOI"). Identify sender + capture name/company/email.
-- **Use case (their words):** full migration between data-tools / cloud providers, with **data sameness as the ground truth**. Wants to see how we handle e.g. different column-naming rules between cloud providers.
-- **Why it's a strong fit (and maybe a beachhead):** data migration correctness is **deterministically checkable** — compare migrated data vs source (row counts, value-level equality, schema/column mapping). No AI judging AI. A cheaper model does the migration; Bongo verifies every mapping against the source and catches the wrong ones (e.g. a column renamed/mapped incorrectly because providers name things differently).
-- **One-line pitch for this customer:** "Run the migration on a cheaper model. Bongo checks every column mapping against the source data and catches the wrong ones, so you trust the migration without hand-checking it."
-- **Next steps:** get name/company, book a 15-min call, scope the exact providers, consider building the demo on THIS use case (checkable = bulletproof).
+## 1. Julio Anthony Leonard  (data migration — verbal LOI)
+- **Status:** Verbal LOI. Interested specifically IF agents don't fail silently or fake success during data migration.
+- **Concrete use case (his words):** migration from **on-prem to BigQuery**.
+  - BigQuery column names are **case-INsensitive** at creation: you can't have both `Column_A` and `column_a` — it errors.
+  - On-prem column names are **case-sensitive**: both can exist at once.
+  - So on migration, something must decide per-column: if `Column_A` and `column_a` are **semantically the same** -> combine them; otherwise rename / alias / other.
+  - Today this needs **manual intervention and data-level checks** every time.
+- **Why this is the ideal use case (and a real beachhead):** correctness is **deterministically checkable** — compare migrated data vs source (row counts, value-level equality, schema/column mapping). No AI judging AI. A cheap model does the migration; Bongo verifies each column mapping against the actual data and catches the wrong calls (e.g. merging two columns that are NOT the same, which silently loses data). This is exactly the "fails silently / fakes success" risk he flagged.
+- **One-line pitch for him:** "Run the migration on a cheaper model. Bongo checks every column mapping against the real data and catches the silent mistakes — like wrongly merging `Column_A` and `column_a` — so you trust the migration without hand-checking it."
+- **Next steps:** capture company/email, book a 15-min call, scope on-prem->BQ, consider building a migration-verify demo on THIS case (checkable = bulletproof).
 
 ## 2. Arjun (ponnagantiarjun644@gmail.com)  (earlier LOI)
 - **Status:** Offered to sign an LOI as an early design partner. LOI PDF drafted (`Agent-Reality-Check-LOI`), pending send/sign.
