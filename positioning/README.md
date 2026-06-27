@@ -2,12 +2,12 @@
 
 Positioning determines the demo-video script, and round 1 is judged ONLY on the video. So this is THE decision. Verified data + council verdict below (being filled).
 
-## The decision: how do we position Bongo?
+## The decision: how do we position Plumbline?
 Two options from advisor feedback:
 
-**A) Industry-specific.** Optimize Bongo for the ONE industry where choosing the wrong/cheap model costs the most (huge cost + reliability stakes), e.g. robotics/industrial where a wrong model burns credits fast and fails deeply, vs e.g. video editing where pro-vs-flash barely differs. NEEDS: which industry, and its market size.
+**A) Industry-specific.** Optimize Plumbline for the ONE industry where choosing the wrong/cheap model costs the most (huge cost + reliability stakes), e.g. robotics/industrial where a wrong model burns credits fast and fails deeply, vs e.g. video editing where pro-vs-flash barely differs. NEEDS: which industry, and its market size.
 
-**B) Judge-specific.** Tailor to the judging companies' real agent/API workflows (Datadog, Mistral, Genesis AI): "here's how you use agent API today, here's how Bongo optimizes it." Resonates with judges (who work in agent-workflow startups).
+**B) Judge-specific.** Tailor to the judging companies' real agent/API workflows (Datadog, Mistral, Genesis AI): "here's how you use agent API today, here's how Plumbline optimizes it." Resonates with judges (who work in agent-workflow startups).
 
 Håkan currently leans B (the judges are agent-workflow people who'll instantly get it). Open to the council + data.
 
@@ -19,7 +19,7 @@ Håkan currently leans B (the judges are agent-workflow people who'll instantly 
 - A great product with bad positioning = bad. Positioning applied to a specific market multiplies the wow.
 
 ## The "not a router" line (locked)
-OpenRouter / Cursor auto-pick a model FOR you. Bongo is the opposite: YOU already chose your model. Bongo gives you the confidence to run a CHEAPER one by catching its errors, pinpointing exactly what went wrong, and helping fix it (escalate just that step flash->pro, or help the human fix the prompt).
+OpenRouter / Cursor auto-pick a model FOR you. Plumbline is the opposite: YOU already chose your model. Plumbline gives you the confidence to run a CHEAPER one by catching its errors, pinpointing exactly what went wrong, and helping fix it (escalate just that step flash->pro, or help the human fix the prompt).
 
 ## To be filled
 - [ ] Verified data: which industry has the biggest cheap-vs-expensive model stakes + market size (research running)

@@ -1,11 +1,11 @@
-# PITCH-DECK.md — Verity (YC structure, rubric-mapped)
+# PITCH-DECK.md — Plumbline (YC structure, rubric-mapped)
 
 **Design rule:** every slide is PROOF, not vibes. Lead reliability + the vertical, never cost. Cost is one receipts slide. Name competitors before judges do.
 
 ---
 
 ## Slide 1 — Title / Hook
-- **Verity** wordmark. Tagline: *"Keep your model. We verify it against reality."*
+- **Plumbline** wordmark. Tagline: *"Keep your model. We verify it against reality."*
 - One line under it: *"The independent reliability layer that catches your AI agent's silently-wrong steps — and fixes only the step that broke."*
 - *(Rubric: Pitch Delivery — removes the placeholder-name credibility tax.)*
 
@@ -25,13 +25,13 @@
 - *(Embed the trace screenshot: red step → escalation badge → green.)*
 
 ## Slide 5 — Demo proof (Demo /17)
-- Scoreboard: cheap-alone **67%** → Verity **100%**, **~62% cheaper** than frontier-everywhere.
+- Scoreboard: cheap-alone **67%** → Plumbline **100%**, **~62% cheaper** than frontier-everywhere.
 - Escalation counter: "47 cheap / 3 escalated."
 - ~15s coding red→green pytest still — "ground truth, not an opinion."
 - *(Mirror of the video money-shot; judges who skim the deck after the video see the same artifact.)*
 
 ## Slide 6 — Differentiation / Moat (Differentiation /16)
-- 4-column matrix: **cross-provider / runtime / per-step correctness / active-fix.** Only Verity has all four checks.
+- 4-column matrix: **cross-provider / runtime / per-step correctness / active-fix.** Only Plumbline has all four checks.
 - Name the threats first: Future AGI (Agent Command Center), Portkey (guardrails verify-but-don't-correct), Raindrop (fixes *offline*).
 - "Loop is copyable in a month. The cross-provider per-(model × task) reliability data that compounds with traffic is not."
 - The structural moat: **no single lab will escalate a failed step to a competitor, or wire a deterministic check into your live task.**
@@ -51,7 +51,7 @@
 ## Slide 9 — Go-To-Market (GTM /17)
 - **Wedge:** Seed–Series A AI product teams (2–20 eng) running multi-step code/data-pipeline agents on cheap models, who own their keys (one-line install) and have been burned by a silent failure.
 - **High-stakes beachhead vertical:** regulated data migration / financial data pipelines — "data sameness" is deterministic ground truth; a wrong column-mapping to prod is a compliance incident (the existing LOI's exact pain).
-- **Channels:** (1) warm founder network — 15-min "watch it break, watch Verity save it" calls; (2) agent-builder communities (LiteLLM / OpenRouter / LangChain) with the free open-core base_url proxy as PLG top-of-funnel; (3) hackathon/sponsor ecosystem (Mistral, Datadog) — literal ICP.
+- **Channels:** (1) warm founder network — 15-min "watch it break, watch Plumbline save it" calls; (2) agent-builder communities (LiteLLM / OpenRouter / LangChain) with the free open-core base_url proxy as PLG top-of-funnel; (3) hackathon/sponsor ecosystem (Mistral, Datadog) — literal ICP.
 - **First $10K (concrete):** convert 2 existing LOIs (data-migration prospect + Arjun) to PAID flat-fee pilots ($500–$1.5K/mo, 4–6 wks, named catch-rate success metric) → cash in days; add 8–12 pilots via the 3 channels. 10–12 × ~$1K ≈ $10–12K, converting to seat + per-verified-step once value shows in their own logs.
 
 ## Slide 10 — Traction

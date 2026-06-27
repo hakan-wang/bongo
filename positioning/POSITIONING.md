@@ -1,4 +1,4 @@
-# POSITIONING.md — Verity
+# POSITIONING.md — Plumbline
 
 ## The decision (locked)
 **BLEND, anchored on a high-stakes vertical.** Keep the anti-router *catch-and-recover engine* as the spine. Lead the video with a **finance / money-moving tool-call agent**. Demote swarm to an optional in-demo *mechanism* beat. Demote cost to *closing receipts*. (Unanimous council, confidence 8.)
@@ -8,7 +8,7 @@ We are **not** a router. Routers pick a model for you. We keep *your* model and 
 ## The line (first words of the video, zero jargon)
 > **"Your agent's cheap model just confidently produced a wrong number — and nothing errored. We catch it against reality, pinpoint the exact step, and fix only that step."**
 
-One-sentence product: **Verity is the independent reliability layer that catches an AI agent's silently-wrong steps against deterministic ground truth, pinpoints the broken step, and escalates only that step to a stronger model on another provider — so a cheap model runs as reliably as an expensive one, on any provider.**
+One-sentence product: **Plumbline is the independent reliability layer that catches an AI agent's silently-wrong steps against deterministic ground truth, pinpoints the broken step, and escalates only that step to a stronger model on another provider — so a cheap model runs as reliably as an expensive one, on any provider.**
 
 ## Why this line wins (mapped to rubric)
 - **Agentic Depth /15** — "catch against reality + per-step pinpoint + cross-provider escalate + recover" maps 1:1 onto the rubric line (multi-step autonomy + recovers-from-failure + defensible-beyond-base-model).
@@ -17,7 +17,7 @@ One-sentence product: **Verity is the independent reliability layer that catches
 - **Demo /17** — 100% buildable tonight: swap staged task content into the existing checker registry; reuse the cheap→verify→escalate loop unchanged.
 
 ## The vertical (video anchor)
-**Finance — a money-moving tool-call agent.** A cheap model reads a financial doc (10-K excerpt / invoice / trade ticket) and emits structured numbers + a `settle_trade(amount, ccy, account)` call. It silently fabricates or mis-sets one value (sign-flipped net_debt, 10x notional, wrong currency). **HTTP 200, no error.** Verity's deterministic check goes red on exactly that step, escalates only it cross-provider (Mistral → Anthropic), green.
+**Finance — a money-moving tool-call agent.** A cheap model reads a financial doc (10-K excerpt / invoice / trade ticket) and emits structured numbers + a `settle_trade(amount, ccy, account)` call. It silently fabricates or mis-sets one value (sign-flipped net_debt, 10x notional, wrong currency). **HTTP 200, no error.** Plumbline's deterministic check goes red on exactly that step, escalates only it cross-provider (Mistral → Anthropic), green.
 
 **Mechanism inoculation shot (~15s coding cutaway):** real failing `pytest` turning green after escalation — the irrefutable "ground truth, not another AI's opinion" proof. This pre-empts the #1 judge objection ("is the checker just another LLM?").
 
@@ -57,4 +57,4 @@ Use FrugalGPT cascade + generator-verifier asymmetry + verifier-based best-of-N 
 - "router" (except to say what we are NOT)
 
 ## The name
-**Verity** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Verity caught it"), scales beyond coding. Domain plan: `getverity.ai` / `tryverity.com`. Fallback **Plumbline** if clearance is crowded — the best metaphor in the set (a physical, deterministic check against true reality via gravity).
+**Plumbline** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Plumbline caught it"), scales beyond coding. Domain plan: `getverity.ai` / `tryverity.com`. Fallback **Plumbline** if clearance is crowded — the best metaphor in the set (a physical, deterministic check against true reality via gravity).
