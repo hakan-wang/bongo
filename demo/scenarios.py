@@ -1,195 +1,29 @@
 """
-Bongo demo engine — the PROOF.
+Plumbline demo engine — the PROOF.
 
-Real coding tasks, REAL deterministic verification (we actually run the tests — no AI
-judging AI), and the Bongo reliability loop: cheap model -> verify -> on fail, escalate
-THAT step to a strong model on a DIFFERENT provider -> verify -> pass.
+A cheap model runs a multi-step agent. Plumbline checks every step against REALITY
+(run the tests / arithmetic against ground truth — NOT another AI's opinion), catches the
+silently-wrong step, and recovers it with a LADDER:
+  rung 1  retry the cheap model WITH the failure reason (cheapest fix)
+  rung 2  escalate ONLY that step to a stronger model on a DIFFERENT provider
+  rung 3  kill-switch: halt a runaway/looping step before it burns budget
+and, when a step has no deterministic ground truth, Plumbline is HONEST: it flags it
+low-confidence instead of pretending it passed.
 
-Model outputs are PINNED (staged) so the demo always fires on stage — cheap LLMs are
-non-deterministic, so we don't gamble on that live. The VERIFY step is the only thing that
-is genuinely computed, and it's deterministic (run the unit tests).
-
-For a genuinely-real cross-provider escalation (Mistral -> Anthropic/OpenAI) using your own
-keys, see demo/real_proof.py.
-
-Relative cost units (realistic-ish): a frontier "strong" model ~= 20x a cheap one.
-Run:  python3 demo/scenarios.py     # prints the aggregate scoreboard
+Model outputs are PINNED so the demo always fires on stage; the VERIFICATION is real.
+Relative cost units: a frontier "strong" model ~= 20x a cheap one.
+Run:  python3 demo/scenarios.py
 """
+import json
 
 COST = {"cheap": 1, "strong": 20}
-
-# Cross-provider identity — Bongo is vendor-neutral. The cheap model and the strong model
-# we escalate to are on DIFFERENT providers (a single lab will never route you off itself).
-PROVIDER = {
-    "cheap":    {"provider": "Mistral",   "model": "mistral-small"},
-    "strong":   {"provider": "Anthropic", "model": "claude-sonnet"},
-    "verifier": {"provider": "Bongo",     "model": "deterministic"},
-    "bongo":    {"provider": "Bongo",     "model": "reliability-layer"},
-}
-
-# ---------------------------------------------------------------------------
-# The tasks. Each has REAL unit tests. cheap_code is what the cheap model "wrote"
-# (some are silently buggy: pass some tests, fail others). strong_code is correct.
-# ---------------------------------------------------------------------------
-TASKS = [
-    {
-        "name": "is_palindrome",
-        "desc": "True if a string reads the same forwards and backwards (ignore case/spaces).",
-        "tests": (
-            "assert is_palindrome('racecar') is True\n"
-            "assert is_palindrome('Race car') is True\n"
-            "assert is_palindrome('hello') is False\n"
-        ),
-        "cheap_buggy": False,
-        "cheap_code": (
-            "def is_palindrome(s):\n"
-            "    s = ''.join(c.lower() for c in s if c.isalnum())\n"
-            "    return s == s[::-1]\n"
-        ),
-        "strong_code": (
-            "def is_palindrome(s):\n"
-            "    s = ''.join(c.lower() for c in s if c.isalnum())\n"
-            "    return s == s[::-1]\n"
-        ),
-    },
-    {
-        "name": "fizzbuzz",
-        "desc": "Return 'Fizz'/'Buzz'/'FizzBuzz' for multiples of 3/5/15, else the number as a string.",
-        "tests": (
-            "assert fizzbuzz(3) == 'Fizz'\n"
-            "assert fizzbuzz(5) == 'Buzz'\n"
-            "assert fizzbuzz(15) == 'FizzBuzz'\n"
-            "assert fizzbuzz(7) == '7'\n"
-        ),
-        "cheap_buggy": False,
-        "cheap_code": (
-            "def fizzbuzz(n):\n"
-            "    if n % 15 == 0: return 'FizzBuzz'\n"
-            "    if n % 3 == 0: return 'Fizz'\n"
-            "    if n % 5 == 0: return 'Buzz'\n"
-            "    return str(n)\n"
-        ),
-        "strong_code": (
-            "def fizzbuzz(n):\n"
-            "    if n % 15 == 0: return 'FizzBuzz'\n"
-            "    if n % 3 == 0: return 'Fizz'\n"
-            "    if n % 5 == 0: return 'Buzz'\n"
-            "    return str(n)\n"
-        ),
-    },
-    {
-        "name": "slugify",
-        "desc": "Turn a title into a URL slug: lowercase, strip punctuation/accents, words joined by '-'.",
-        "tests": (
-            "assert slugify('Hello World') == 'hello-world'\n"
-            "assert slugify('  Multiple   Spaces ') == 'multiple-spaces'\n"
-            "assert slugify('Cafe & Bar!') == 'cafe-bar'\n"
-            "assert slugify('Already-Slugged') == 'already-slugged'\n"
-        ),
-        # SILENT BUG: cheap version lowercases + hyphenates spaces but never strips
-        # punctuation, so 'Cafe & Bar!' -> 'cafe-&-bar!' . Passes the simple cases.
-        "cheap_buggy": True,
-        "cheap_code": (
-            "def slugify(s):\n"
-            "    return '-'.join(s.lower().split())\n"
-        ),
-        "strong_code": (
-            "import re\n"
-            "def slugify(s):\n"
-            "    s = re.sub(r'[^a-z0-9]+', ' ', s.lower())\n"
-            "    return '-'.join(s.split())\n"
-        ),
-    },
-    {
-        "name": "roman_to_int",
-        "desc": "Convert a Roman numeral string to an integer (handles subtractive forms like IV, IX).",
-        "tests": (
-            "assert roman_to_int('III') == 3\n"
-            "assert roman_to_int('IV') == 4\n"
-            "assert roman_to_int('IX') == 9\n"
-            "assert roman_to_int('LVIII') == 58\n"
-            "assert roman_to_int('MCMXCIV') == 1994\n"
-        ),
-        # SILENT BUG: cheap version just sums values, ignoring subtractive notation.
-        # 'III'->3 (ok), 'LVIII'->58 (ok), but 'IV'->6, 'MCMXCIV'->2026 (wrong).
-        "cheap_buggy": True,
-        "cheap_code": (
-            "def roman_to_int(s):\n"
-            "    v = {'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000}\n"
-            "    return sum(v[c] for c in s)\n"
-        ),
-        "strong_code": (
-            "def roman_to_int(s):\n"
-            "    v = {'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000}\n"
-            "    total = 0\n"
-            "    for i, c in enumerate(s):\n"
-            "        if i+1 < len(s) and v[c] < v[s[i+1]]:\n"
-            "            total -= v[c]\n"
-            "        else:\n"
-            "            total += v[c]\n"
-            "    return total\n"
-        ),
-    },
-    {
-        "name": "flatten",
-        "desc": "Flatten a list that may contain nested lists into a single flat list.",
-        "tests": (
-            "assert flatten([1, [2, 3], [4, [5]]]) == [1, 2, 3, 4, 5]\n"
-            "assert flatten([]) == []\n"
-            "assert flatten([1, 2, 3]) == [1, 2, 3]\n"
-        ),
-        "cheap_buggy": False,
-        "cheap_code": (
-            "def flatten(lst):\n"
-            "    out = []\n"
-            "    for x in lst:\n"
-            "        if isinstance(x, list): out.extend(flatten(x))\n"
-            "        else: out.append(x)\n"
-            "    return out\n"
-        ),
-        "strong_code": (
-            "def flatten(lst):\n"
-            "    out = []\n"
-            "    for x in lst:\n"
-            "        if isinstance(x, list): out.extend(flatten(x))\n"
-            "        else: out.append(x)\n"
-            "    return out\n"
-        ),
-    },
-    {
-        "name": "word_count",
-        "desc": "Return a dict mapping each word (case-insensitive) to its count.",
-        "tests": (
-            "assert word_count('a a b') == {'a': 2, 'b': 1}\n"
-            "assert word_count('The the THE') == {'the': 3}\n"
-            "assert word_count('') == {}\n"
-        ),
-        "cheap_buggy": False,
-        "cheap_code": (
-            "def word_count(s):\n"
-            "    out = {}\n"
-            "    for w in s.lower().split():\n"
-            "        out[w] = out.get(w, 0) + 1\n"
-            "    return out\n"
-        ),
-        "strong_code": (
-            "def word_count(s):\n"
-            "    out = {}\n"
-            "    for w in s.lower().split():\n"
-            "        out[w] = out.get(w, 0) + 1\n"
-            "    return out\n"
-        ),
-    },
-]
+CHEAP = {"provider": "Mistral", "model": "mistral-small"}
+STRONG = {"provider": "Anthropic", "model": "claude-sonnet"}
 
 
-# ---------------------------------------------------------------------------
-# Pluggable verifier registry. Bongo's "how do we know a step is wrong?" is NOT one
-# if-statement and NOT an LLM judging an LLM — it's a registry of cheap, deterministic
-# checkers. The demo leads with `run-tests` (free ground truth); the others ship too.
-# ---------------------------------------------------------------------------
+# ----------------------------- deterministic checkers -----------------------------
 def _check_run_tests(code, spec):
-    """Execute the candidate code, then run real unit tests. Reality is the judge."""
+    """Execute candidate code, then run real unit tests. Reality is the judge."""
     ns = {}
     try:
         exec(code, ns)
@@ -211,206 +45,212 @@ def _check_run_tests(code, spec):
     return True, "all tests passed"
 
 
-def _check_json_schema(obj_text, required):
-    """Deterministic structured-output check (shared shape with reliability.py:check_meeting)."""
-    import json
+def _check_finance(output, gt):
+    """Arithmetic ground-truth check for a money-moving tool call.
+    gt = {'amount': <correct>, 'ccy': <correct>}. Catches sign flips, 10x slips, wrong ccy."""
     try:
-        obj = json.loads(obj_text)
+        obj = json.loads(output)
+    except Exception as e:
+        return False, f"invalid tool call JSON: {e}"
+    amt, ccy = obj.get("amount"), obj.get("ccy")
+    if amt != gt["amount"]:
+        if isinstance(amt, (int, float)) and gt["amount"]:
+            factor = amt / gt["amount"]
+            hint = f" ({factor:g}x the true notional)" if factor in (10, 100, 0.1, -1) else ""
+        else:
+            hint = ""
+        return False, f"amount {amt:,} != ground truth {gt['amount']:,}{hint}"
+    if ccy != gt["ccy"]:
+        return False, f"currency {ccy} != ground truth {gt['ccy']}"
+    return True, f"matches ground truth: {gt['amount']:,} {gt['ccy']}"
+
+
+def _check_json_schema(output, required):
+    try:
+        obj = json.loads(output)
     except Exception as e:
         return False, f"invalid JSON: {e}"
     for f in required:
         if f not in obj:
-            return False, f"missing field '{f}'"
+            return False, f"missing required field '{f}'"
     return True, "schema valid"
 
 
-# --- ZERO-CONFIG checkers: how Bongo checks a step when you have NO unit tests ---
-# This is the onboarding answer: "you bring a check, or we use a generic one." A real
-# founder (Brolly, a support bot) doesn't have unit tests — these work out of the box.
-def _check_format(output, _ignored=None):
-    """Zero-config default: is the output well-formed?
-    If it looks like JSON (starts with { or [) it MUST parse; otherwise just non-empty."""
-    import json
-    s = (output or "").strip()
-    if not s:
-        return False, "empty output"
-    if s[0] in "{[":
-        try:
-            json.loads(s)
-            return True, "valid JSON"
-        except Exception as e:
-            return False, f"looks like JSON but is malformed: {e}"
-    return (len(s) > 1, "non-empty text" if len(s) > 1 else "malformed/too short")
+CHECKERS = {"run-tests": _check_run_tests, "finance": _check_finance, "json-schema": _check_json_schema}
 
 
-def _check_schema_from_example(output, example):
-    """Paste ONE good output; Bongo checks new outputs match its shape (keys + types)."""
-    import json
-    try:
-        got, want = json.loads(output), json.loads(example)
-    except Exception as e:
-        return False, f"invalid JSON: {e}"
-    if not isinstance(got, dict) or not isinstance(want, dict):
-        return (type(got) == type(want), "shape matches example")
-    for k, v in want.items():
-        if k not in got:
-            return False, f"missing field '{k}' (present in your example)"
-        if type(got[k]) != type(v):
-            return False, f"field '{k}' has wrong type (got {type(got[k]).__name__})"
-    return True, "matches your example's shape"
+def verify(output, spec, checker):
+    return CHECKERS[checker](output, spec)
 
 
-def _check_tool_args(output, required):
-    """Check a tool/function call's arguments are valid JSON with the required fields."""
-    return _check_json_schema(output, required)
+# --------------------------------- the tasks ---------------------------------
+# kind: "normal" (catch + ladder), "runaway" (kill-switch), "unverifiable" (honest flag)
+TASKS = [
+    {   # ★ HEADLINE — money-moving finance agent. Cheap model 10x-slips the notional.
+        "name": "settle_trade", "kind": "normal", "domain": "finance",
+        "desc": "Read the trade ticket (10,000 units @ $98.50) and emit settle_trade(amount, ccy).",
+        "checker": "finance", "spec": {"amount": 985000, "ccy": "USD"},
+        "cheap_out": '{"tool": "settle_trade", "amount": 9850000, "ccy": "USD"}',   # 10x decimal slip
+        "retry_out": '{"tool": "settle_trade", "amount": 985000, "ccy": "EUR"}',    # fixes amount, wrong ccy
+        "strong_out": '{"tool": "settle_trade", "amount": 985000, "ccy": "USD"}',   # correct
+    },
+    {   # MECHANISM cutaway — code agent, the un-fakeable red->green pytest proof.
+        "name": "roman_to_int", "kind": "normal", "domain": "code",
+        "desc": "Implement roman_to_int() (handles subtractive forms like IV, IX).",
+        "checker": "run-tests",
+        "spec": "assert roman_to_int('IV') == 4\nassert roman_to_int('MCMXCIV') == 1994\nassert roman_to_int('III') == 3\n",
+        "cheap_out": "def roman_to_int(s):\n v={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000}\n return sum(v[c] for c in s)\n",
+        "strong_out": "def roman_to_int(s):\n v={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000}\n t=0\n for i,c in enumerate(s):\n  t += -v[c] if i+1<len(s) and v[c]<v[s[i+1]] else v[c]\n return t\n",
+    },
+    # three steps the cheap model gets RIGHT (so escalation rate stays low — most stay cheap)
+    {   "name": "is_palindrome", "kind": "normal", "domain": "code",
+        "desc": "Implement is_palindrome() ignoring case/spaces.", "checker": "run-tests",
+        "spec": "assert is_palindrome('Race car') is True\nassert is_palindrome('hello') is False\n",
+        "cheap_out": "def is_palindrome(s):\n s=''.join(c.lower() for c in s if c.isalnum())\n return s==s[::-1]\n",
+        "strong_out": "def is_palindrome(s):\n s=''.join(c.lower() for c in s if c.isalnum())\n return s==s[::-1]\n"},
+    {   "name": "fizzbuzz", "kind": "normal", "domain": "code",
+        "desc": "Implement fizzbuzz(n).", "checker": "run-tests",
+        "spec": "assert fizzbuzz(15)=='FizzBuzz'\nassert fizzbuzz(3)=='Fizz'\nassert fizzbuzz(7)=='7'\n",
+        "cheap_out": "def fizzbuzz(n):\n if n%15==0:return 'FizzBuzz'\n if n%3==0:return 'Fizz'\n if n%5==0:return 'Buzz'\n return str(n)\n",
+        "strong_out": "def fizzbuzz(n):\n if n%15==0:return 'FizzBuzz'\n if n%3==0:return 'Fizz'\n if n%5==0:return 'Buzz'\n return str(n)\n"},
+    {   "name": "extract_invoice", "kind": "normal", "domain": "finance",
+        "desc": "Extract the invoice as JSON {vendor, total, due_date}.", "checker": "json-schema",
+        "spec": ["vendor", "total", "due_date"],
+        "cheap_out": '{"vendor": "Acme Corp", "total": 4210.00, "due_date": "2026-07-15"}',
+        "strong_out": '{"vendor": "Acme Corp", "total": 4210.00, "due_date": "2026-07-15"}'},
+    {   # rung 3 — runaway/looping step, kill-switch halts it before it burns budget
+        "name": "reconcile_ledger", "kind": "runaway", "domain": "finance",
+        "desc": "Agent loops re-querying the ledger, never terminating — burning tokens."},
+    {   # honesty boundary — no deterministic ground truth; Plumbline flags, does NOT auto-pass
+        "name": "draft_summary", "kind": "unverifiable", "domain": "text",
+        "desc": "Write a one-line summary of the deal memo (subjective — no ground truth)."},
+]
 
 
-def _check_llm_judge(output, rubric):
-    """Lower-confidence fallback for fuzzy steps (no deterministic ground truth).
-    Stub here; the real gateway plugs in a small judge model. Labeled lower-confidence
-    on purpose — we LEAD with deterministic checks."""
-    s = (output or "").strip()
-    return (len(s) > 0, "llm-judge (lower confidence) — needs a model to score the rubric")
-
-
-# the registry — surfaced in the UI so judges see it's a verification *system*,
-# not one if-statement and not an LLM grading an LLM.
-CHECKERS = {
-    "run-tests":          _check_run_tests,            # code: execute + assert (this demo)
-    "format":             _check_format,               # ZERO-CONFIG default (valid/non-empty)
-    "schema-from-example": _check_schema_from_example,  # paste one good output
-    "json-schema":        _check_json_schema,          # required fields/types
-    "tool-args":          _check_tool_args,            # tool-call arguments valid
-    "llm-judge":          _check_llm_judge,            # fuzzy fallback (lower confidence)
-}
-
-
-def verify(code, tests, checker="run-tests"):
-    """Run a deterministic checker. Returns (passed, detail)."""
-    return CHECKERS[checker](code, tests)
+def _gen_step(steps, role, label, detail, status, **extra):
+    p = CHEAP if role == "cheap" else STRONG if role == "strong" else {"provider": "Plumbline", "model": "verifier"}
+    steps.append({"label": label, "role": role, "provider": p["provider"], "model": p["model"],
+                  "detail": detail, "status": status, **extra})
 
 
 def run_task(task, mode):
-    """Run one task. mode in {'cheap', 'bongo', 'strong'}.
-    Returns a trace dict with per-step events, final pass/fail, and cost."""
-    steps = []
-    cost = 0
+    kind = task["kind"]
+    steps, cost, advice, flagged = [], 0, None, False
 
-    def step(label, role, detail, status, checker=None, output=None):
-        p = PROVIDER[role]
-        steps.append({
-            "label": label, "role": role,
-            "provider": p["provider"], "model": p["model"],
-            "detail": detail, "status": status,
-            "checker": checker, "output": output,
-        })
+    # ---- special kinds (Agentic Depth showcases) ----
+    if kind == "runaway":
+        _gen_step(steps, "cheap", "Run step", "agent starts re-querying the ledger…", "ok")
+        if mode == "bongo":
+            cost += COST["cheap"]
+            _gen_step(steps, "verifier", "Plumbline: loop detected", "same call 5x, no progress — runaway", "catch")
+            _gen_step(steps, "bongo", "Kill-switch fired", "halted at a $5 budget ceiling before the bill ran", "killswitch")
+            return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
+                    "steps": steps, "passed": True, "cost": cost, "fixed_by": "kill-switch",
+                    "advice": "Pin a hard budget/loop ceiling on this step.", "flagged": False,
+                    "shipped_broken": False, "scored": False}
+        # cheap/strong alone: loops, burns budget
+        cost += COST[mode] * 5
+        _gen_step(steps, mode, "No guard", "looped 5x, burned budget, never finished", "fail")
+        return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
+                "steps": steps, "passed": False, "cost": cost, "fixed_by": "UNGUARDED",
+                "advice": None, "flagged": False, "shipped_broken": True, "scored": False}
 
-    # --- generation step ---
+    if kind == "unverifiable":
+        _gen_step(steps, "cheap", "Generate", "wrote a one-line summary", "ok")
+        cost += COST["cheap" if mode != "strong" else "strong"]
+        if mode == "bongo":
+            _gen_step(steps, "verifier", "Plumbline: no ground truth", "subjective step — cannot verify deterministically", "flag")
+            _gen_step(steps, "bongo", "Flagged for a human", "marked LOW-CONFIDENCE — not auto-passed (we don't fake a green)", "flag")
+            return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
+                    "steps": steps, "passed": False, "cost": cost, "fixed_by": "flagged-low-confidence",
+                    "advice": "Route to human review or add a rubric/reference to make it checkable.",
+                    "flagged": True, "shipped_broken": False, "scored": False}
+        return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
+                "steps": steps, "passed": True, "cost": cost, "fixed_by": mode,
+                "advice": None, "flagged": False, "shipped_broken": False, "scored": False}
+
+    # ---- normal: generate -> verify -> (ladder) ----
+    checker, spec = task["checker"], task["spec"]
     if mode == "strong":
-        step("Analyze failing tests", "strong", "read the test suite", "ok")
-        step("Generate implementation", "strong", f"wrote {task['name']}()", "ok")
+        _gen_step(steps, "strong", "Generate", f"wrote {task['name']}", "ok")
         cost += COST["strong"]
-        code = task["strong_code"]
-    else:
-        step("Analyze failing tests", "cheap", "read the test suite", "ok")
-        step("Generate implementation", "cheap", f"wrote {task['name']}()", "ok")
+        ok, detail = verify(task["strong_out"], spec, checker)
+        _gen_step(steps, "verifier", "Verify against reality", detail, "pass" if ok else "fail", checker=checker, output=detail)
+        return _result(task, mode, steps, ok, cost, "strong", None)
+
+    _gen_step(steps, "cheap", "Generate", f"wrote {task['name']}", "ok")
+    cost += COST["cheap"]
+    ok, detail = verify(task["cheap_out"], spec, checker)
+    _gen_step(steps, "verifier", "Verify against reality", detail, "pass" if ok else "fail", checker=checker, output=detail)
+    if ok or mode != "bongo":
+        return _result(task, mode, steps, ok, cost, "cheap", None)
+
+    # bongo recovery ladder
+    fail_reason = detail
+    # rung 1 — retry cheap WITH guidance (cheapest fix)
+    if task.get("retry_out"):
+        _gen_step(steps, "bongo", "Plumbline: caught silently-wrong step", f"failed reality check ({fail_reason})", "catch")
+        _gen_step(steps, "cheap", "Rung 1 — retry cheap with the failure reason", "fed the error back, regenerated", "ok")
         cost += COST["cheap"]
-        code = task["cheap_code"]
+        ok, detail = verify(task["retry_out"], spec, checker)
+        _gen_step(steps, "verifier", "Verify against reality", detail, "pass" if ok else "fail", checker=checker, output=detail)
+        if ok:
+            return _result(task, mode, steps, True, cost, "retry-cheap",
+                           f"Cheap model self-corrected once given the failure reason — no frontier spend.")
+    else:
+        _gen_step(steps, "bongo", "Plumbline: caught silently-wrong step", f"failed reality check ({fail_reason})", "catch")
 
-    # --- verify step (REAL, deterministic) ---
-    passed, detail = verify(code, task["tests"], "run-tests")
-    step("Verify — run tests", "verifier", detail,
-         "pass" if passed else "fail", checker="run-tests", output=detail)
+    # rung 2 — escalate ONLY this step to a stronger model on a DIFFERENT provider
+    _gen_step(steps, "strong", f"Rung 2 — escalate this step to {STRONG['provider']}",
+              f"re-generated with a stronger model on another provider", "ok")
+    cost += COST["strong"]
+    ok, detail = verify(task["strong_out"], spec, checker)
+    _gen_step(steps, "verifier", "Verify against reality", detail, "pass" if ok else "fail", checker=checker, output=detail)
+    advice = (f"Cheap {CHEAP['provider']} model failed the reality check ({fail_reason}); escalated to "
+              f"{STRONG['provider']} and it passed. Pin this step type to the stronger model, or tighten the prompt.")
+    return _result(task, mode, steps, ok, cost, "cross-provider-escalate", advice)
 
-    fixed_by = mode
-    advice = None
-    # --- Bongo intervention: escalate ONLY the failing step, to a DIFFERENT provider ---
-    if mode == "bongo" and not passed:
-        fail_reason = detail  # capture the pinpointed reason before re-verify overwrites it
-        step("Bongo: silent failure caught", "bongo",
-             f"the cheap model's output failed the check ({fail_reason}) — no error was thrown; "
-             f"escalating just this step", "catch")
-        step(f"Escalate this step to {PROVIDER['strong']['provider']}", "strong",
-             f"re-generated {task['name']}() with a stronger model on another provider", "ok")
-        cost += COST["strong"]
-        code = task["strong_code"]
-        passed, detail = verify(code, task["tests"], "run-tests")
-        step("Verify — run tests", "verifier", detail,
-             "pass" if passed else "fail", checker="run-tests", output=detail)
-        fixed_by = "bongo-escalation"
-        # (b) advise how to improve next time — Bongo doesn't just fix, it tells you why
-        advice = (f"'{task['name']}' failed the run-tests check ({fail_reason}). Bongo escalated it "
-                  f"from {PROVIDER['cheap']['provider']} to {PROVIDER['strong']['provider']} and it passed. "
-                  f"Next time: pin this step to the stronger model, or add a prompt constraint covering "
-                  f"the case that broke.")
-        step("Bongo advice", "bongo", advice, "advice")
 
-    return {
-        "task": task["name"],
-        "desc": task["desc"],
-        "mode": mode,
-        "steps": steps,
-        "passed": passed,
-        "cost": cost,
-        "fixed_by": fixed_by,
-        "advice": advice,
-        "shipped_broken": (not passed),
-    }
+def _result(task, mode, steps, ok, cost, fixed_by, advice):
+    return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
+            "steps": steps, "passed": ok, "cost": cost, "fixed_by": fixed_by, "advice": advice,
+            "flagged": False, "shipped_broken": (not ok), "scored": True}
 
 
 def run_all():
-    """Run every task in all three modes and compute the aggregate scoreboard."""
     modes = ["cheap", "bongo", "strong"]
     results = {m: [run_task(t, m) for t in TASKS] for m in modes}
 
     def agg(m):
-        rs = results[m]
-        total = len(rs)
-        passed = sum(1 for r in rs if r["passed"])
-        cost = sum(r["cost"] for r in rs)
-        return {
-            "mode": m,
-            "passed": passed,
-            "total": total,
-            "reliability": round(100 * passed / total),
-            "cost_units": cost,
-            "broken_shipped": sum(1 for r in rs if r["shipped_broken"]),
-        }
+        scored = [r for r in results[m] if r["scored"]]
+        passed = sum(1 for r in scored if r["passed"])
+        return {"mode": m, "passed": passed, "total": len(scored),
+                "reliability": round(100 * passed / len(scored)) if scored else 0,
+                "cost_units": sum(r["cost"] for r in results[m]),
+                "broken_shipped": sum(1 for r in results[m] if r["shipped_broken"])}
 
-    scoreboard = {m: agg(m) for m in modes}
-    # scale to "per 1,000 runs" with a tiny per-unit price for a tangible $ number
-    PRICE_PER_UNIT = 0.002  # $ per cheap-call-equivalent
-    scale = 1000 / len(TASKS)
+    sb = {m: agg(m) for m in modes}
+    PRICE = 0.002
+    scale = 1000 / len([t for t in TASKS if t["kind"] == "normal"])
     for m in modes:
-        sb = scoreboard[m]
-        sb["cost_per_1k_usd"] = round(sb["cost_units"] * scale * PRICE_PER_UNIT, 2)
+        sb[m]["cost_per_1k_usd"] = round(sb[m]["cost_units"] * scale * PRICE, 2)
 
-    cb, bg, st = scoreboard["cheap"], scoreboard["bongo"], scoreboard["strong"]
-    headline = {
-        "bongo_reliability": bg["reliability"],
-        "cheap_reliability": cb["reliability"],
-        "savings_vs_strong_pct": round(100 * (st["cost_units"] - bg["cost_units"]) / st["cost_units"]),
-        "bongo_cost_pct_of_strong": round(100 * bg["cost_units"] / st["cost_units"]),
-        "cheap_broken_shipped": cb["broken_shipped"],
-    }
-    return {"results": results, "scoreboard": scoreboard, "headline": headline,
-            "cost_model": COST, "providers": PROVIDER, "checkers": list(CHECKERS)}
+    cb, bg, st = sb["cheap"], sb["bongo"], sb["strong"]
+    escalated = sum(1 for r in results["bongo"] if r["fixed_by"] in ("cross-provider-escalate", "retry-cheap"))
+    headline = {"bongo_reliability": bg["reliability"], "cheap_reliability": cb["reliability"],
+                "savings_vs_strong_pct": round(100 * (st["cost_units"] - bg["cost_units"]) / st["cost_units"]),
+                "cheap_broken_shipped": cb["broken_shipped"],
+                "escalated": escalated, "total_steps": len([t for t in TASKS if t["kind"] == "normal"])}
+    return {"results": results, "scoreboard": sb, "headline": headline,
+            "providers": {"cheap": CHEAP, "strong": STRONG}, "checkers": list(CHECKERS)}
 
 
 if __name__ == "__main__":
-    data = run_all()
-    sb = data["scoreboard"]
-    h = data["headline"]
-    print("\n=== BONGO DEMO — scoreboard (per 1,000 runs) ===\n")
+    d = run_all(); sb = d["scoreboard"]; h = d["headline"]
+    print("\n=== PLUMBLINE — scoreboard (verifiable steps, per 1,000 runs) ===\n")
     for m in ["cheap", "bongo", "strong"]:
-        s = sb[m]
-        name = {"cheap": "Cheap model alone", "bongo": "Cheap + Bongo",
-                "strong": "Expensive model alone"}[m]
-        print(f"  {name:24s}  reliability {s['reliability']:3d}%   "
-              f"${s['cost_per_1k_usd']:>7}/1k   broken shipped: {s['broken_shipped']}")
-    print(f"\n  -> Bongo: {h['bongo_reliability']}% reliable (vs cheap {h['cheap_reliability']}%), "
-          f"{h['savings_vs_strong_pct']}% cheaper than the expensive model "
-          f"({h['bongo_cost_pct_of_strong']}% of its cost).")
-    print(f"  -> Cheap-alone silently shipped {h['cheap_broken_shipped']} broken results.")
-    print(f"  -> Cross-provider: cheap={PROVIDER['cheap']['provider']} -> "
-          f"escalate={PROVIDER['strong']['provider']}.  Checkers: {', '.join(data['checkers'])}.\n")
+        s = sb[m]; name = {"cheap": "Cheap model alone", "bongo": "Cheap + Plumbline", "strong": "Expensive model alone"}[m]
+        print(f"  {name:24s} reliability {s['reliability']:3d}%   ${s['cost_per_1k_usd']:>7}/1k   broken shipped: {s['broken_shipped']}")
+    print(f"\n  -> Plumbline: {h['bongo_reliability']}% reliable (vs cheap {h['cheap_reliability']}%), "
+          f"{h['savings_vs_strong_pct']}% cheaper than the big model. Escalated only {h['escalated']}/{h['total_steps']} steps.")
+    print("  -> Recovery ladder + kill-switch + honest low-confidence flag all fire. Cross-provider Mistral->Anthropic.\n")

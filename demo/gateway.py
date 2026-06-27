@@ -1,7 +1,7 @@
 """
-Bongo gateway — the wired "point your base_url at Bongo" path (stdlib only).
+Plumbline gateway — the wired "point your base_url at Plumbline" path (stdlib only).
 
-OpenAI-compatible POST /v1/chat/completions. Bongo generates with your CHEAP model, VERIFIES
+OpenAI-compatible POST /v1/chat/completions. Plumbline generates with your CHEAP model, VERIFIES
 the step (zero-config `format` checker by default, or pass a `bongo` field to choose another),
 and on failure ESCALATES that step to a STRONG model on a DIFFERENT provider — returning the
 corrected output plus a `bongo` trace (what broke, what fixed it, cost).
@@ -55,7 +55,7 @@ def run_bongo(messages, checker, spec):
                       "checker": checker, "ok": ok2, "detail": detail2, "output": strong_out})
         final, fixed_by = strong_out, "bongo-escalation"
         advice = (f"The cheap model ({CHEAP_PROVIDER}) failed the '{checker}' check ({detail}). "
-                  f"Bongo escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
+                  f"Plumbline escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
                   f"to the strong model or tighten the prompt.")
 
     return {"content": final, "fixed_by": fixed_by, "cost": cost, "advice": advice, "trace": trace}
@@ -97,7 +97,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"\n  Bongo gateway:  http://localhost:{PORT}/v1/chat/completions"
+    print(f"\n  Plumbline gateway:  http://localhost:{PORT}/v1/chat/completions"
           f"   ({'REAL' if REAL else 'mock'} mode)\n"
           f"  Point your OpenAI client's base_url at http://localhost:{PORT}/v1 and keep your key.\n")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

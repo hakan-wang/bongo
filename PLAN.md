@@ -1,4 +1,4 @@
-# Bongo: Plan (living document)
+# Plumbline: Plan (living document)
 
 This plan will be updated continuously as Håkan gives more clarity. Latest info always wins. Everything gets pushed to GitHub.
 
@@ -15,11 +15,11 @@ This plan will be updated continuously as Håkan gives more clarity. Latest info
 ## Open decisions (need Håkan)
 1. Lead promise: "make cheap models reliable" (reliability) or "cut my bill" (cost)? Recommended: lead with the combined line "run cheap, stay reliable," show cost as the proof.
 2. First domain for the demo: code agents (right/wrong is automatically checkable, bulletproof demo) vs general agents like Brolly (broader, but harder to verify). Recommended: code for the demo, vision covers all agents.
-3. On catching a bad step, Bongo should: alert / auto-retry the cheap model / fall back to a stronger model for that step? Recommended: retry first, fall back if still failing.
+3. On catching a bad step, Plumbline should: alert / auto-retry the cheap model / fall back to a stronger model for that step? Recommended: retry first, fall back if still failing.
 4. Real-time in the loop (block and fix before the user sees it) vs after-the-fact dashboard? Recommended: in the loop, that is the magic.
 
 ## Architecture (current + intended)
-- **Proxy** (built): app points base_url at Bongo, Bongo forwards to the real API with the user's key.
+- **Proxy** (built): app points base_url at Plumbline, Plumbline forwards to the real API with the user's key.
 - **Cache** (built): repeated/near-duplicate calls served free.
 - **Tracer** (to build): record every step of a multi-step workflow (inputs, outputs, tool calls, cost, latency).
 - **Checkers** (to build): per-step verifiers. Start deterministic: schema validation, execution, constraint checks, existence checks. These are what make "is this step wrong" answerable without another AI.
@@ -27,7 +27,7 @@ This plan will be updated continuously as Håkan gives more clarity. Latest info
 - **Router/advisor** (side feature): recommend cheaper model + API based on observed reliability.
 
 ## Demo target (36h)
-A multi-step agent runs on a CHEAP model. It makes a mistake. Bongo catches it live, corrects it, and the dashboard shows: same result quality as the expensive model, at a fraction of the cost. The headline number: "Pro-level reliability at Flash-level price."
+A multi-step agent runs on a CHEAP model. It makes a mistake. Plumbline catches it live, corrects it, and the dashboard shows: same result quality as the expensive model, at a fraction of the cost. The headline number: "Pro-level reliability at Flash-level price."
 
 ## Principles
 - Independent and cross-model. Never locked to one vendor.

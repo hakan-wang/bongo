@@ -1,5 +1,5 @@
 > ⚠️ **SUPERSEDED — earlier idea / context recap.** Current canonical direction is
-> **Bongo = make cheap models reliable + cut cost**, see
+> **Plumbline = make cheap models reliable + cut cost**, see
 > [`/info/SOURCE-OF-TRUTH.md`](../info/SOURCE-OF-TRUTH.md). Useful here: the data points,
 > market figures, competitor list, and event context.
 

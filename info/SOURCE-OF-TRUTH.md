@@ -1,9 +1,9 @@
-# Bongo — Source of Truth (canonical)
+# Plumbline — Source of Truth (canonical)
 
 > **This is the single canonical doc. If anything elsewhere conflicts with this, this wins.**
 > Primary source = **Håkan** (founder, most current context). Older docs that describe a
 > different/earlier idea are superseded — see "Document status" at the bottom.
-> Working name "Bongo" is a placeholder; we'll pick a real name later.
+> Working name "Plumbline" is a placeholder; we'll pick a real name later.
 > _Living doc — updated as Håkan adds clarity. Last merged from: Håkan's direction +
 > Michelle's build + team docs + ongoing research._
 
@@ -11,7 +11,7 @@
 
 ## 1. One line
 
-**Run the cheap model. Bongo makes it reliable, and cuts your bill.**
+**Run the cheap model. Plumbline makes it reliable, and cuts your bill.**
 
 ## 2. The core insight
 
@@ -20,18 +20,18 @@ trust the cheap one (e.g. Gemini Flash). The cheap model is 10–50× cheaper bu
 more mistakes — and worse, **when it makes a mistake, nobody knows** (it fails silently:
 a confident, well-formatted, wrong answer; nothing crashes).
 
-Bongo sits between an app and the LLM API, **watches every step** of a multi-step agent,
+Plumbline sits between an app and the LLM API, **watches every step** of a multi-step agent,
 **catches** the cheap model's bad steps, and **corrects** them. Result: a cheap model
 performs like an expensive one. You stop overpaying for reliability you can get another way.
 
-## 3. What Bongo is
+## 3. What Plumbline is
 
 A drop-in layer — **one line: change the `base_url`, keep your own API key.** It is:
 
 1. **Vendor-independent / cross-model.** Works across Gemini, OpenAI, Anthropic, and
    open/Chinese models. *This is also the answer to "why won't a big LLM company build it":
    a model maker only ever improves its OWN model — it will never tell you "use the
-   competitor's cheaper model." Bongo sits above all of them.* (A QRT advisor confirmed
+   competitor's cheaper model." Plumbline sits above all of them.* (A QRT advisor confirmed
    this is exactly why he'd use it.)
 2. **Runtime, in the loop.** It watches and fixes **while the agent runs** — not just a
    dashboard after the fact. That live catch-and-fix is the magic.
@@ -39,7 +39,7 @@ A drop-in layer — **one line: change the `base_url`, keep your own API key.** 
 
 ## 4. Main feature — the reliability loop (watch → verify → correct → learn)
 
-For each step of a multi-step workflow Bongo:
+For each step of a multi-step workflow Plumbline:
 - **Traces** the step (input, output, tool calls, tokens, cost, latency).
 - **Verifies** it — cheaply detects whether the step went wrong (see §6, the hard core).
 - **Intervenes** on a bad step — retry the cheap model with guidance, supply missing
@@ -50,18 +50,18 @@ For each step of a multi-step workflow Bongo:
 
 ## 5. Side feature — cost + comparison
 
-Because Bongo sees every step and its quality, it can:
-- Tell you where you're **overpaying** ("you're using Pro where Flash + Bongo would do").
+Because Plumbline sees every step and its quality, it can:
+- Tell you where you're **overpaying** ("you're using Pro where Flash + Plumbline would do").
 - **Score reliability across providers** as it gathers data, and recommend a cheaper or
   better model for a given job. (e.g. "Model X is only 20% reliable here — don't use it";
-  "Flash is 60% alone but 95% with Bongo".)
+  "Flash is 60% alone but 95% with Plumbline".)
 - The team's `proxy.py` already does a cost layer (caching → ~70% bill cut in the demo).
 
-## 6. The hard technical core (this is what makes or breaks Bongo)
+## 6. The hard technical core (this is what makes or breaks Plumbline)
 
-"Watch every step and catch the bad ones" only works if Bongo can tell a step is wrong
+"Watch every step and catch the bad ones" only works if Plumbline can tell a step is wrong
 **cheaply, without already knowing the answer.** The bet: **verification is cheaper than
-generation.** How Bongo knows depends on the step type:
+generation.** How Plumbline knows depends on the step type:
 
 - **Verifiable steps (START HERE):** code (run the test), structured output (validate the
   schema), tool calls (did it return valid data), math (recompute), retrieval (does the
@@ -80,13 +80,13 @@ bulletproof live demo) — is consistent with this.
 
 Any startup or team that put an LLM API inside their product, especially with **multi-step
 agent workflows** (analyze → reason → act). They all face the same tradeoff:
-cheap-and-unreliable vs expensive-and-safe. **Bongo removes the tradeoff.** Nobody can
+cheap-and-unreliable vs expensive-and-safe. **Plumbline removes the tradeoff.** Nobody can
 afford to run Opus/Gemini-Pro on their customer-support bot — but a cheaper bot makes
-mistakes. Without Bongo it just fails. With Bongo: save money AND stay reliable.
+mistakes. Without Plumbline it just fails. With Plumbline: save money AND stay reliable.
 
 ## 8. Objections, answered
 
-- **Won't a big LLM company / lab build it?** Only for their own model. Bongo is
+- **Won't a big LLM company / lab build it?** Only for their own model. Plumbline is
   independent and cross-model. (QRT advisor confirmed.)
 - **Does it die when models get perfect?** No. It's about the cost/reliability tradeoff
   and making the cheap option safe — which always matters. Framed as the **proof /
@@ -97,7 +97,7 @@ mistakes. Without Bongo it just fails. With Bongo: save money AND stay reliable.
   thrives even though AWS ships CloudWatch.)
 - **Crowded space?** The eval/observability incumbents (LangSmith, Arize, Datadog,
   Braintrust) and YC cos (Coval, Chronicle, Respan, Arga, Roark, Raindrop, Baserun) mostly
-  **measure / test your OWN agent before shipping** (passive). Bongo is a **runtime layer
+  **measure / test your OWN agent before shipping** (passive). Plumbline is a **runtime layer
   that catches and corrects in production, across models, and cuts cost** — different lane.
   The cost gateways/routers (OpenRouter, Portkey, LiteLLM, Helicone, Cloudflare AI Gateway)
   route/cache/track spend but **don't actively fix the cheap model's mistakes**. (Research
@@ -105,7 +105,7 @@ mistakes. Without Bongo it just fails. With Bongo: save money AND stay reliable.
 
 ## 9. Differentiation, in one stage line
 
-> **"Everyone else tells you your agent failed. Bongo catches it and fixes it — on a
+> **"Everyone else tells you your agent failed. Plumbline catches it and fixes it — on a
 > cheaper model — across every provider, and shows you the cheapest model that still does
 > the job."**
 
@@ -121,7 +121,7 @@ mistakes. Without Bongo it just fails. With Bongo: save money AND stay reliable.
 
 ## 11. Business model (from GTM.md)
 
-- **Pay-from-savings:** Bongo takes ~**20% of the AI spend it saves you**. Save you
+- **Pay-from-savings:** Plumbline takes ~**20% of the AI spend it saves you**. Save you
   nothing → you pay nothing. Easiest yes, instant ROI, no buyer risk.
 - **Free / open core** (drop-in proxy, basic caching) drives adoption + pleases OSS judges.
 - **Team** (~$40/dev/mo) for dashboards/history/controls; **Enterprise** self-hosted.
@@ -160,7 +160,7 @@ a cheap model's failure is cheaply checkable.
 
 ## 16. Demo target (36h)
 
-A multi-step agent runs on a CHEAP model, makes a mistake, **Bongo catches it live and
+A multi-step agent runs on a CHEAP model, makes a mistake, **Plumbline catches it live and
 corrects it**, and the dashboard shows: **same quality as the expensive model, a fraction
 of the cost.** Headline: *"Pro-level reliability at Flash-level price."*
 
@@ -175,6 +175,6 @@ of the cost.** Headline: *"Pro-level reliability at Flash-level price."*
 - ⚠️ **Superseded (kept for the valuable data only):** `docs/early-writeup.md` and
   `docs/hackathon-context.md` describe an **earlier idea** — a standalone "verifier / proof
   layer that catches agents faking success." That deterministic-verification insight now
-  lives inside Bongo as the **VERIFY** step (§6), but Bongo's headline is **cheap-model
+  lives inside Plumbline as the **VERIFY** step (§6), but Plumbline's headline is **cheap-model
   reliability + cost**, not a standalone fakery-catcher. Use those old docs only for their
   market figures and competitor list.

@@ -1,6 +1,6 @@
-# Bongo — Quickstart
+# Plumbline — Quickstart
 
-**Bongo makes a cheap AI model reliable.** You pick your model; Bongo watches every step of
+**Plumbline makes a cheap AI model reliable.** You pick your model; Plumbline watches every step of
 your agent, catches when the model is wrong, and fixes it — by escalating only the broken step
 to a stronger model (on any provider), or telling you how to improve. It is **not a router**:
 you keep the model you chose.
@@ -14,10 +14,9 @@ Everything below runs offline (Python 3, stdlib only — **no `pip install`, no 
 python3 demo/server.py
 # open http://localhost:8200  and click "Run the demo"
 ```
-A cheap coding agent fixes failing tests, **fails silently**, and Bongo catches it (by running
-the real tests) and escalates just that step to a stronger model → red turns green. The
-scoreboard shows: cheap ~67% reliable → **cheap + Bongo = 100%, ~62% cheaper** than the
-expensive model.
+A cheap agent runs a finance step and silently wires the wrong amount (a 10× notional). Plumbline
+catches it against the trade's real arithmetic, walks the recovery ladder (retry → escalate
+cross-provider), and ends correct. Scoreboard: cheap **60%** → **cheap + Plumbline = 100%, 78% cheaper**.
 
 ## 2. See a real cross-provider catch (needs keys)
 ```bash
@@ -27,7 +26,7 @@ python3 demo/real_proof.py            # real Mistral -> Anthropic escalation
 ```
 
 ## 3. Connect your own workflow (the product)
-Point your OpenAI-compatible client at the Bongo gateway and keep your own key:
+Point your OpenAI-compatible client at the Plumbline gateway and keep your own key:
 ```bash
 python3 demo/gateway.py               # http://localhost:8129/v1  (mock by default)
 ```
@@ -37,16 +36,16 @@ client = OpenAI(
     base_url="http://localhost:8129/v1",   # <- the only change
     api_key=YOUR_KEY,                        # your key, passes through
 )
-# optional: tell Bongo how to check this step (zero-config 'format' is the default)
+# optional: tell Plumbline how to check this step (zero-config 'format' is the default)
 resp = client.chat.completions.create(
     model="mistral-small",
     messages=[{"role": "user", "content": "..."}],
     extra_body={"bongo": {"checker": "format"}},
 )
-print(resp.bongo)   # what Bongo caught / fixed / advised
+print(resp.bongo)   # what Plumbline caught / fixed / advised
 ```
 
-**How does Bongo know YOUR step is wrong if you have no unit tests?** You bring a check, or use
+**How does Plumbline know YOUR step is wrong if you have no unit tests?** You bring a check, or use
 a zero-config one. Built-in checkers: `format` (valid/non-empty — the default), `schema-from-example`
 (paste one good output), `json-schema`, `tool-args`, and `llm-judge` (fuzzy fallback, lower
 confidence — we lead with the deterministic ones).

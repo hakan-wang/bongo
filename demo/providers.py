@@ -1,9 +1,9 @@
 """
 Shared cross-provider LLM call shapers (stdlib only, no pip).
 
-Bongo is vendor-neutral: the cheap model and the strong model can be on DIFFERENT providers.
+Plumbline is vendor-neutral: the cheap model and the strong model can be on DIFFERENT providers.
 Used by demo/real_proof.py (the real cross-provider proof) and demo/gateway.py (the wired
-"point your base_url at Bongo" path). Each function reads its key from the environment.
+"point your base_url at Plumbline" path). Each function reads its key from the environment.
 """
 import json
 import os

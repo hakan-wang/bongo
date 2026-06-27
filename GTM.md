@@ -1,4 +1,4 @@
-# Bongo: Team Plan, Business Model, Go-To-Market
+# Plumbline: Team Plan, Business Model, Go-To-Market
 
 ## Team (4 people)
 - **Håkan — GTM / sales / pitch.** Outreach to warm contacts and CEOs, book calls, run the live pitch, collect LOIs, work the room and the sponsors/judges.
@@ -15,7 +15,7 @@
 ## Business model
 Headline: **you only pay from what we save you.** Easiest possible yes, instant ROI, no risk to the buyer.
 - **Free / open core:** drop-in proxy, basic caching. Drives adoption, pleases open-source judges.
-- **Savings share (the wedge):** Bongo takes ~20% of the AI spend it saves you. If we save you nothing, you pay nothing. Aligns incentives, fast to close.
+- **Savings share (the wedge):** Plumbline takes ~20% of the AI spend it saves you. If we save you nothing, you pay nothing. Aligns incentives, fast to close.
 - **Team:** ~$40 per developer / month once value is proven, for dashboards, history, controls.
 - **Enterprise:** custom, self-hosted, for regulated or high-volume teams.
 
@@ -23,7 +23,7 @@ Headline: **you only pay from what we save you.** Easiest possible yes, instant 
 Real cash in 1-2 days is unlikely. Realistic and judge-credible traction:
 - Booked discovery calls (today/tomorrow)
 - Signed LOIs / design partners (like Arjun)
-- A verbal or written pilot commitment ("we'll run Bongo on our workflow")
+- A verbal or written pilot commitment ("we'll run Plumbline on our workflow")
 Treat these as the traction story. State them plainly, do not inflate to "revenue" if it is commitments.
 
 ## Outreach (warm only)

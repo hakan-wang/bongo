@@ -1,7 +1,7 @@
 """
-Bongo: a drop-in cost layer for LLM APIs.
-Point your app's base_url at Bongo, keep your code and key the same.
-Bongo caches repeated/near-repeated calls so you stop paying for the same tokens twice.
+Plumbline: a drop-in cost layer for LLM APIs.
+Point your app's base_url at Plumbline, keep your code and key the same.
+Plumbline caches repeated/near-repeated calls so you stop paying for the same tokens twice.
 
 Run:  python3 proxy.py        (serves on http://localhost:8128)
 No dependencies. Mock mode by default so it runs offline for the demo.
@@ -25,7 +25,7 @@ def normalize(messages):
     return re.sub(r"\s+", " ", text)
 
 def mock_completion(prompt):
-    return "Here is a concise answer to: " + prompt[:60] + " ... (generated once, then cached by Bongo)."
+    return "Here is a concise answer to: " + prompt[:60] + " ... (generated once, then cached by Plumbline)."
 
 def real_completion(model, messages):
     body = json.dumps({"model": model, "messages": messages}).encode()
@@ -98,5 +98,5 @@ class H(BaseHTTPRequestHandler):
         })
 
 if __name__ == "__main__":
-    print("Bongo cost layer on http://localhost:%d  (dashboard at /)" % PORT)
+    print("Plumbline cost layer on http://localhost:%d  (dashboard at /)" % PORT)
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()

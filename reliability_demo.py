@@ -1,9 +1,9 @@
 """
-Bongo reliability demo:  python3 reliability_demo.py
+Plumbline reliability demo:  python3 reliability_demo.py
 
 A multi-step agent extracts meeting details into JSON.
 The CHEAP model is unreliable (it really produces broken outputs here).
-Bongo catches every bad step and recovers it, so the final result is 100% correct,
+Plumbline catches every bad step and recovers it, so the final result is 100% correct,
 while costing far less than always using the strong model.
 
 Real logic (checkers + recovery). Models are simulated (no API key yet).
@@ -50,7 +50,7 @@ def main():
         t = run_step(task, cheap_model, strong_model, max_retries=1)
         total_cost += t["cost"]
         if t["final"]: correct += 1
-        # how the cheap model would have done with NO Bongo (first attempt only)
+        # how the cheap model would have done with NO Plumbline (first attempt only)
         first = t["attempts"][0]
         if first["ok"]: cheap_alone_correct += 1
         status = {"cheap":"ok first try","cheap-retry":"caught -> retried -> fixed",
@@ -64,9 +64,9 @@ def main():
     baseline_cost = len(INPUTS) * COST["strong"]      # always use the strong model
     cheap_only_cost = len(INPUTS) * COST["cheap"]
     print("\n" + "-"*60)
-    print(f"Correctness WITH Bongo:        {correct}/{len(INPUTS)}  ({correct/len(INPUTS)*100:.0f}%)")
+    print(f"Correctness WITH Plumbline:        {correct}/{len(INPUTS)}  ({correct/len(INPUTS)*100:.0f}%)")
     print(f"Correctness cheap model alone: {cheap_alone_correct}/{len(INPUTS)}  ({cheap_alone_correct/len(INPUTS)*100:.0f}%)")
-    print(f"\nCost WITH Bongo:        {total_cost} units")
+    print(f"\nCost WITH Plumbline:        {total_cost} units")
     print(f"Cost always-strong:     {baseline_cost} units")
     print(f"Savings vs always-strong: {(1-total_cost/baseline_cost)*100:.0f}%")
     print(f"\n=> Pro-level reliability ({correct/len(INPUTS)*100:.0f}%) at {(1-total_cost/baseline_cost)*100:.0f}% lower cost.\n")

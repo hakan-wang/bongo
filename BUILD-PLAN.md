@@ -1,10 +1,10 @@
-# Bongo — FINAL BUILD-PLAN.md
+# Plumbline — FINAL BUILD-PLAN.md
 
 > **Status:** v1.0 FINAL. Plan-before-build is over for P0 — the P0 spine is already
 > built and verified running (see "Ground truth" below). This plan locks scope for the
 > remaining ~24h: **close the judge-flagged gaps, harden the stage, do NOT add surfaces.**
-> Files live in `/Users/hakanwang/Bongo/` (core: `proxy.py`, `reliability.py`) and
-> `/Users/hakanwang/Bongo/demo/` (`scenarios.py`, `server.py`, `index.html`).
+> Files live in `/Users/hakanwang/Plumbline/` (core: `proxy.py`, `reliability.py`) and
+> `/Users/hakanwang/Plumbline/demo/` (`scenarios.py`, `server.py`, `index.html`).
 
 ---
 
@@ -15,12 +15,12 @@ demo"** and watch two columns race to fix a broken software test suite using a *
 
 - **Left (cheap AI alone):** confidently says "done" — but the tests are still failing. It
   **shipped broken code and didn't notice.**
-- **Right (cheap AI + Bongo):** hits the same failure, but Bongo **runs the tests itself**
+- **Right (cheap AI + Plumbline):** hits the same failure, but Plumbline **runs the tests itself**
   (real, not faked), catches the silent failure, and **escalates just that one step to a
   stronger model on a different provider** — the tests flip **red → green** live.
 
 Then a **scoreboard** drops: *cheap alone = 67% reliable and shipped broken work; cheap +
-Bongo = 100% reliable at ~38% of the all-expensive cost.* Those numbers are **computed
+Plumbline = 100% reliable at ~38% of the all-expensive cost.* Those numbers are **computed
 live from the actual run**, not typed in.
 
 **What you'll be able to show:** a real, clickable frontend (no terminal, works offline),
@@ -28,7 +28,7 @@ plus one slide-style line on screen explaining why this isn't just a router. We 
 **screen recording** as a backup so nothing can break on stage.
 
 **What you say in one breath:** *"Same cheap model on both sides. The left ships broken work
-and never knows. Bongo runs the tests, catches it, and upgrades only the broken step — to a
+and never knows. Plumbline runs the tests, catches it, and upgrades only the broken step — to a
 different provider's model. Expensive-model reliability at cheap-model price."*
 
 ---
@@ -39,7 +39,7 @@ different provider's model. Expensive-model reliability at cheap-model price."*
 previewable product).** Form A.
 
 - **Why (line 1):** it's the only form that answers *"how do I connect?"* in one line —
-  `base_url → Bongo`, keep your own key — and it's the most buildable because we already own
+  `base_url → Plumbline`, keep your own key — and it's the most buildable because we already own
   every component (`proxy.py`, `reliability.py`, `demo/`).
 - **Why (line 2):** it's the only form non-technical Håkan can demo with zero code, and the
   red→green side-by-side visually lands the cross-provider, mid-run, post-verify wedge that
@@ -93,7 +93,7 @@ exactly per the judge critiques. Resist building new things.
     registry and surface 2–3 types in the trace (`run-tests`, plus reuse `check_meeting`
     JSON-schema from `reliability.py`, + an `assertion` check). Pre-empts "it's one
     if-statement / just FrugalGPT." ~45 min. Add a `checker` field per verify step.
-- **1.2 [P0] ✅ DONE — Bongo escalation loop** (`run_task` mode `bongo`: catch → escalate
+- **1.2 [P0] ✅ DONE — Plumbline escalation loop** (`run_task` mode `bongo`: catch → escalate
   one step → re-verify → green; `fixed_by="bongo-escalation"`).
 - **1.3 [P0] ✅ DONE — Scoreboard** (`run_all` → reliability %, cost_units, broken_shipped,
   `cost_per_1k_usd`, headline). **Numbers are computed from the trace — keep it that way.**
@@ -122,7 +122,7 @@ exactly per the judge critiques. Resist building new things.
 - **3.3 [P0] Connect card upgrade** — keep the `base_url` snippet; **add a "Paste your key"
   input + provider dropdown** (cosmetic, real-looking) so the BYO/connect story is shown.
   ~30 min.
-- **3.4 [P0] Verdict banner** — "Cheap alone: shipped 2 broken. Cheap + Bongo: 0 broken,
+- **3.4 [P0] Verdict banner** — "Cheap alone: shipped 2 broken. Cheap + Plumbline: 0 broken,
   100%. +cost only on the escalated steps." Pull from `headline`. (Mostly present — verify.)
 - **3.5 [P1] Cost + reliability scoreboard tiles** — 3 counting-up stats (Reliability %,
   Cost units, $ saved/1k) + comparison bars cheap / bongo / strong. Reuse `dashboard.html`
@@ -179,35 +179,35 @@ proof)**, **3.2/3.3 (credibility + connect)**, and **4.4 (record fallback)** —
 
 ## 4. The 90-second demo flow (de-risked)
 
-**Screen:** one viewport, two columns (LEFT *"Cheap model — alone"*, RIGHT *"Cheap + Bongo"*),
+**Screen:** one viewport, two columns (LEFT *"Cheap model — alone"*, RIGHT *"Cheap + Plumbline"*),
 same 4 steps each; a scoreboard strip below, revealed at the end.
 
 - **[0:00–0:10] Hook.** Both idle, task = *"Fix the failing test suite."*
-  *"Same cheap model on both sides. The only difference: the right runs through Bongo.
+  *"Same cheap model on both sides. The only difference: the right runs through Plumbline.
   Watch the left fail silently."*
 - **[0:10–0:35] Both run, left goes wrong quietly.** Steps 1→3 animate; **both** show
   "patch applied — looks done." Nothing looks wrong yet.
   *"Both read the test, find the bug, write a patch, say 'done.' The cheap model is
   confidently wrong — and a normal agent loop never catches it."*
 - **[0:35–0:50] The real verify.** Step 4 *Run tests* fires on both — **genuinely executes.**
-  LEFT stays **RED**, marked DONE-with-✕, "silent failure" flashes. RIGHT: Bongo flags
+  LEFT stays **RED**, marked DONE-with-✕, "silent failure" flashes. RIGHT: Plumbline flags
   *VERIFY FAILED → escalating step*. **Real red test output shown.**
-  *"Bongo doesn't trust the agent's word — it runs the tests. Free, deterministic ground
+  *"Plumbline doesn't trust the agent's word — it runs the tests. Free, deterministic ground
   truth. Left shipped broken. Right caught it."*
 - **[0:50–1:10] The intervene (wow).** RIGHT: step re-opens, *"↗ escalated to **Anthropic**
   (strong)"* — **different provider logo than the cheap one** — re-verify flips **RED→GREEN**.
   Real green output shown. Left red, right green, side by side.
-  *"Bongo escalates only that one broken step — to a stronger model on a different provider —
+  *"Plumbline escalates only that one broken step — to a stronger model on a different provider —
   re-verifies, green. One step. Not the whole run."*
 - **[1:10–1:25] Scoreboard reveal (live numbers).** *Reliability: cheap 67% (2 broken
-  shipped) → Bongo 100%. Cost: Bongo ~38% of all-strong.*
-  *"Left was cheap AND broken — the worst outcome. All-strong is right but expensive. Bongo:
+  shipped) → Plumbline 100%. Cost: Plumbline ~38% of all-strong.*
+  *"Left was cheap AND broken — the worst outcome. All-strong is right but expensive. Plumbline:
   expensive-model reliability, near-cheap cost — it only pays for the step that needed it."*
 - **[1:25–1:35] Close + moat.** *"Deterministic verify, mid-run escalation, cross-provider.
   That's the whole pitch."*
 
 **Router-wedge line (memorize; also on screen):**
-> *"Routers like OpenRouter or Vercel pick a model up front, per request, and lock it. Bongo
+> *"Routers like OpenRouter or Vercel pick a model up front, per request, and lock it. Plumbline
 > escalates **one step, after a deterministic verify fails, mid-run, across providers.** They
 > route before the work; we intervene inside the work."*
 

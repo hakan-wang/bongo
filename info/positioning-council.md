@@ -1,7 +1,7 @@
 # Positioning — Council Verdict
 
 > **What this doc is.** A decisive synthesis of the POSITIONING council (a multi-advisor
-> debate on Bongo's one-sentence pitch). It answers one question: **what is the first sentence
+> debate on Plumbline's one-sentence pitch). It answers one question: **what is the first sentence
 > out of our mouths on stage, and why.** Read this with `info/SOURCE-OF-TRUTH.md` (the product)
 > and `VISION.md` open — this doc refines *how we say it*, it does not change *what we built*.
 >
@@ -12,7 +12,7 @@
 
 ## TL;DR (the verdict in four lines)
 
-1. **Lead sentence:** *"Bongo is the independent reliability layer that catches and fixes an AI
+1. **Lead sentence:** *"Plumbline is the independent reliability layer that catches and fixes an AI
    agent's bad steps in real time — so a cheap model runs as reliably as an expensive one, on
    any provider."*
 2. **Lead with reliability + independence. Show cost as the PROOF, never as the headline.**
@@ -25,7 +25,7 @@
 
 ## The Verdict — our one sentence
 
-> ### "Bongo is the independent reliability layer that catches and fixes an AI agent's bad steps in real time — so a cheap model runs as reliably as an expensive one, on any provider."
+> ### "Plumbline is the independent reliability layer that catches and fixes an AI agent's bad steps in real time — so a cheap model runs as reliably as an expensive one, on any provider."
 
 This is the sentence to drill and repeat. It does three jobs at once, which is exactly why it
 won the council over every alternative:
@@ -44,7 +44,7 @@ generation?" instead of dying on it.
 
 ### How it relates to our current canonical line
 
-`SOURCE-OF-TRUTH.md §1` and `VISION.md` currently lead with **"Run the cheap model. Bongo makes
+`SOURCE-OF-TRUTH.md §1` and `VISION.md` currently lead with **"Run the cheap model. Plumbline makes
 it reliable, and cuts your bill."** That line is the right *product*, but the council says the
 **order of emphasis on stage is wrong**: "cuts your bill" / "cheap model" first triggers the
 "this is just a router/FinOps tool" reflex. The verdict keeps every element of the canonical
@@ -59,7 +59,7 @@ proof slide. This is the recommended resolution to `SOURCE-OF-TRUTH.md §14, ope
 Ranked. Each is safe to say; pick by audience.
 
 **Backup 1 — the contrast line (best for an engineer-heavy room).**
-> *"Gateways route and retry on errors; observability tells you after the fact; Bongo watches
+> *"Gateways route and retry on errors; observability tells you after the fact; Plumbline watches
 > each step's output, cheaply decides it's wrong, and fixes that step at runtime — on any model."*
 
 - **Lands with:** Datadog / Mistral / QRT engineers, Dessaigne. It draws the category boundary
@@ -68,14 +68,14 @@ Ranked. Each is safe to say; pick by audience.
   or asked "how is this different from X."
 
 **Backup 2 — the tightest version of our existing line (best for a fast/noisy room or a CEO).**
-> *"Bongo makes a cheap model behave like an expensive one — and we fix it live, across any provider."*
+> *"Plumbline makes a cheap model behave like an expensive one — and we fix it live, across any provider."*
 
 - **Lands with:** the YC GP and any outcome-focused buyer. Closest to `VISION.md`'s framing, so
   it's consistent with the rest of our materials.
 - **Use when:** you have five seconds, or the listener is non-technical.
 
 **Backup 3 — the category claim (use sparingly, only once credibility is established).**
-> *"Bongo is the independent reliability/QA layer for AI agents."*
+> *"Plumbline is the independent reliability/QA layer for AI agents."*
 
 - **Lands with:** investors thinking about defensibility and TAM; nods to the EU AI Act /
   independent-assessment tailwind.
@@ -144,7 +144,7 @@ Worth calling out because it's easy to drop under stage pressure. "Independent" 
 and is the word the engineers respect most:
 
 - **Vendor-neutral / cross-provider** = the moat. A model lab only ever sharpens *its own* model;
-  it will never tell you "use the competitor's cheaper one." Bongo sits above all of them.
+  it will never tell you "use the competitor's cheaper one." Plumbline sits above all of them.
   (A QRT advisor confirmed this is exactly why he'd use it — `SOURCE-OF-TRUTH.md §3, §8`.)
 - **"Can't grade your own homework"** = the durability answer. Independent assessment is the
   direction the whole industry is moving (OpenAI deprecating its own Evals platform; Anthropic
@@ -160,7 +160,7 @@ the durability rebuttal in one word.
 - [ ] Open with the verdict sentence. Reliability + independence first. **Never** "cut your bill" first.
 - [ ] Demo on a **checkable** step type (code agent is the team's bulletproof lean).
 - [ ] Name the boundary out loud — "works where steps are checkable" — *before* a judge asks.
-- [ ] Use cost as the **proof** slide: "Flash + Bongo matches Pro at ~Nx less," cost-per-completed-task.
+- [ ] Use cost as the **proof** slide: "Flash + Plumbline matches Pro at ~Nx less," cost-per-completed-task.
 - [ ] Keep the word **"independent"** in the sentence.
 - [ ] Have **Backup 1** (the contrast line) loaded for any "how is this different from \[router/eval tool]" question.
 

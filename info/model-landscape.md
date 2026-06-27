@@ -1,9 +1,9 @@
-# Bongo — The Model Landscape Cheat Sheet (mid-2026)
+# Plumbline — The Model Landscape Cheat Sheet (mid-2026)
 
-> **What this doc is for.** Bongo's whole pitch is "run the *cheap* model, Bongo makes it
+> **What this doc is for.** Plumbline's whole pitch is "run the *cheap* model, Plumbline makes it
 > reliable." This page is the receipts behind that sentence: **which models are cheap,
 > which are expensive, how big the price gap actually is, and which cheap/open models are
-> already "almost as good"** — i.e. the best candidates to run as Bongo's default
+> already "almost as good"** — i.e. the best candidates to run as Plumbline's default
 > ("backstop") model in a demo.
 >
 > Read this alongside [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (the canonical idea) and
@@ -13,7 +13,7 @@
 > mid-2026 (Opus went 4.5 → 4.6 → 4.7 → 4.8; Gemini 2.5 → 3 → 3.1 → 3.5; GPT-5 → 5.4 → 5.5;
 > DeepSeek V3 → V4). **Treat every number below as a snapshot to re-check the morning of the
 > pitch, not a constant.** The *shape* of the argument (a ~30–100× price gap, cheap models
-> within ~5–10 points of frontier) is stable; the exact suffixes and cents are not. In Bongo
+> within ~5–10 points of frontier) is stable; the exact suffixes and cents are not. In Plumbline
 > itself, the model list should be **config, not code.**
 
 ---
@@ -24,7 +24,7 @@ There are **three tiers** of model, and the gap between the cheapest and the mos
 is roughly **30× to 100× on price** — while on many real tasks the cheap model is only
 **~5–10 quality points behind** the frontier.
 
-**That gap is the entire business.** Bongo's job: run in the cheap tier, catch the cheap
+**That gap is the entire business.** Plumbline's job: run in the cheap tier, catch the cheap
 model's mistakes, and escalate *only the bad step* to the expensive tier. The cost story in
 [`reliability.py`](../reliability.py) bakes this in as `COST = {"cheap": 1, "strong": 50}` —
 a deliberately conservative ~50× spread that matches the real market below.
@@ -54,7 +54,7 @@ scale); treat as directional, not gospel.
 | Claude Sonnet 4.6 | $3 / $15 | workhorse |
 | Gemini 3.5 Flash | $1.50 / $9 | fast |
 
-### Tier C — Cheap closed (Bongo's home turf)
+### Tier C — Cheap closed (Plumbline's home turf)
 
 | Model | Price in / out (per 1M tok) | Notes |
 |---|---|---|
@@ -90,30 +90,30 @@ These are the lines that make a judge feel the gap. (Pick one or two — don't d
 - **Gemini 3.1 Flash-Lite vs Gemini 3.1 Pro:** ~**8× cheaper input** ($0.25 vs $2),
   ~**12× cheaper** vs the older 2.5 Pro.
 - **GPT-5.4-nano vs GPT-5.5:** ~**25× cheaper in**, ~**24× cheaper out**.
-- **The cascade math (matches `reliability.py`):** if Bongo keeps ~90% of steps on the cheap
+- **The cascade math (matches `reliability.py`):** if Plumbline keeps ~90% of steps on the cheap
   model and escalates ~10% to the strong one, you pay frontier prices on a *sliver* of the
   workload, not all of it. That is the "Pro-level reliability at Flash-level price"
   headline in `SOURCE-OF-TRUTH.md` §16.
 
 > **Honesty note for the room:** quote **cost-per-completed-task**, not raw per-token price.
 > Anthropic's newer tokenizer (Opus 4.7+) can emit up to ~35% more tokens for the same text,
-> so a naive $/token comparison can mislead. Bongo's cost dashboard should normalize on
+> so a naive $/token comparison can mislead. Plumbline's cost dashboard should normalize on
 > *task*, not tokens — this is also a feature, not just a caveat.
 
 ---
 
 ## 4. Which cheap/open models are "almost as good" (best backstop candidates)
 
-These are the models worth running as Bongo's **default generator** in a demo — cheap, but
-close enough to frontier that Bongo only has to catch a small tail of mistakes.
+These are the models worth running as Plumbline's **default generator** in a demo — cheap, but
+close enough to frontier that Plumbline only has to catch a small tail of mistakes.
 
 | Candidate | Why it's a strong backstop | Watch-outs |
 |---|---|---|
 | **DeepSeek V4-Flash** | ~Sonnet-4.6-level intelligence (~47 on the index) at **$0.14/$0.28**. The single most dramatic price/quality story. | Hosted; verify first-party vs promo pricing — V4-Pro's $0.44/$0.87 may revert to ~$1.74/$3.48. |
 | **Gemini 3.1 Flash-Lite** | Same family as the Pro most teams already use → trivial swap; ~8–12× cheaper. Great for the "you're paying Pro for Flash work" demo. | Closed; no logprob/hidden-state access for fancy verifiers (use deterministic checks). |
-| **GPT-5.4-mini / nano** | Trail frontier by only ~3–5 points on coding/GPQA; nano is ~25× cheaper. | nano degrades on the hardest reasoning — exactly the tail Bongo catches. |
+| **GPT-5.4-mini / nano** | Trail frontier by only ~3–5 points on coding/GPQA; nano is ~25× cheaper. | nano degrades on the hardest reasoning — exactly the tail Plumbline catches. |
 | **Mistral Large 3** | **Apache 2.0**, self-hostable, 256K context, $0.50/$1.50. Pleases the OSS judges and matters for the EU/sovereignty angle. | Slightly behind the very top on the index. |
-| **GLM-5.2 / Qwen 3.5–3.6** | Best *open-weight* intelligence (GLM ~51); strong tool-calling; Qwen fits a single GPU. | Specs vary by source; "random Chinese model" reliability is exactly what Bongo's per-model reliability score is for. |
+| **GLM-5.2 / Qwen 3.5–3.6** | Best *open-weight* intelligence (GLM ~51); strong tool-calling; Qwen fits a single GPU. | Specs vary by source; "random Chinese model" reliability is exactly what Plumbline's per-model reliability score is for. |
 
 **Rule of thumb for the demo:** pick a backstop where the failure is *cheaply checkable*
 (code, structured output, tool calls) — see `SOURCE-OF-TRUTH.md` §6. **DeepSeek V4-Flash**
@@ -122,17 +122,17 @@ run) are the two best demo picks.
 
 ---
 
-## 5. Why this *strengthens* Bongo (the cross-provider moat)
+## 5. Why this *strengthens* Plumbline (the cross-provider moat)
 
 No single lab spans this whole table. Anthropic will never tell you "use DeepSeek for this
-step"; Google won't route you to GPT-5.4-nano. **Bongo sits above all of them** and
+step"; Google won't route you to GPT-5.4-nano. **Plumbline sits above all of them** and
 arbitrages step-by-step:
 
 - Run cheap (Flash-Lite / V4-Flash / Haiku) by default.
 - Escalate **only the bad step** to whichever strong model (Opus 4.8 / GPT-5.5 / Gemini 3.1
   Pro) is best for it.
 - Build a **cross-provider reliability database** — "Model X is 20% reliable on *this* task,
-  don't use it; Flash is 60% alone but 95% with Bongo" — which is the long-term moat
+  don't use it; Flash is 60% alone but 95% with Plumbline" — which is the long-term moat
   (`SOURCE-OF-TRUTH.md` §5, §8).
 
 This is the concrete, pricing-backed version of the "why won't a lab build it" answer.
@@ -141,7 +141,7 @@ This is the concrete, pricing-backed version of the "why won't a lab build it" a
 
 ## 6. The bet this table rests on
 
-The reason a cheap model + Bongo can match an expensive one is the team's core bet:
+The reason a cheap model + Plumbline can match an expensive one is the team's core bet:
 **verification is cheaper than generation** (`SOURCE-OF-TRUTH.md` §6). Two anchors worth
 knowing:
 
@@ -152,7 +152,7 @@ knowing:
   cost ~**4× fewer** tool calls than *generating* it (≈18 vs ≈75).
 
 ⚠️ **Bounded, not universal.** This holds for **checkable** steps (code, schema, tool calls,
-math, retrieval) and in the **cheap-generator** regime — which is exactly Bongo's lane. It
+math, retrieval) and in the **cheap-generator** regime — which is exactly Plumbline's lane. It
 gets weaker on open-ended/"taste" steps and on frontier-model outputs. Demo on the checkable
 stuff; say the boundary out loud.
 
@@ -163,7 +163,7 @@ stuff; say the boundary out loud.
 - Cheap models cost **~30–100× less** than the expensive ones.
 - On most real work they're only **a little** worse — they just fail **silently** on a small
   fraction of steps.
-- Bongo runs the cheap one, **catches that small fraction**, and only pays for the expensive
+- Plumbline runs the cheap one, **catches that small fraction**, and only pays for the expensive
   model **on the steps that need it**.
 - That's how you get **"Pro-level reliability at Flash-level price."**
 - ⚠️ **All specific model names and prices here go stale fast — re-check them right before

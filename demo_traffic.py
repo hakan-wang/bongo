@@ -1,8 +1,8 @@
-"""Send sample agent-style traffic to Bongo to show savings. python3 demo_traffic.py"""
+"""Send sample agent-style traffic to Plumbline to show savings. python3 demo_traffic.py"""
 import json, urllib.request
 
 URL = "http://localhost:8128/v1/chat/completions"
-# Agents resend the same / overlapping prompts constantly. That is the waste Bongo kills.
+# Agents resend the same / overlapping prompts constantly. That is the waste Plumbline kills.
 prompts = [
     "What is the refund policy for double charges?",
     "What is the refund policy for double charges?",

@@ -1,5 +1,5 @@
 """
-Bongo demo server — dependency-free (Python stdlib only).
+Plumbline demo server — dependency-free (Python stdlib only).
 
 Run:   python3 demo/server.py
 Open:  http://localhost:8200
@@ -46,5 +46,5 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"\n  Bongo dashboard:  http://localhost:{PORT}\n  (Ctrl+C to stop)\n")
+    print(f"\n  Plumbline dashboard:  http://localhost:{PORT}\n  (Ctrl+C to stop)\n")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

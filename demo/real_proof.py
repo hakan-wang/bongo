@@ -1,8 +1,8 @@
 """
-Bongo — ONE genuinely-real cross-provider escalation, captured.
+Plumbline — ONE genuinely-real cross-provider escalation, captured.
 
 Proves the moat is real (not just a pinned label): a CHEAP model on one provider generates,
-Bongo runs the REAL tests, and on failure escalates that step to a STRONG model on a
+Plumbline runs the REAL tests, and on failure escalates that step to a STRONG model on a
 DIFFERENT provider — then re-verifies. Run it once with your keys and screen-record it; the
 on-stage demo stays pinned (cheap LLMs are non-deterministic).
 
@@ -60,22 +60,22 @@ def main():
     p = prompt_for(task)
     tag = " (MOCK — no real API calls)" if mock else ""
 
-    print(f"\n=== Bongo real cross-provider proof — task: {name}(){tag} ===\n")
+    print(f"\n=== Plumbline real cross-provider proof — task: {name}(){tag} ===\n")
     print(f"[1] CHEAP model  ({CHEAP['provider']} / {CHEAP['model']}) generating...")
     cheap_code = gen_cheap(p, task, mock)
     ok, detail = scenarios.verify(cheap_code, task["tests"], "run-tests")
-    print(f"    -> Bongo verify (real tests): {'PASS' if ok else 'FAIL'} — {detail}")
+    print(f"    -> Plumbline verify (real tests): {'PASS' if ok else 'FAIL'} — {detail}")
 
     if ok:
         print("\n    Cheap model passed this time (non-deterministic). Re-run, or try a harder task:\n"
               "      python3 demo/real_proof.py slugify\n")
         return
 
-    print(f"\n[2] Bongo caught a SILENT failure -> escalating THIS step across providers")
+    print(f"\n[2] Plumbline caught a SILENT failure -> escalating THIS step across providers")
     print(f"[3] STRONG model ({STRONG['provider']} / {STRONG['model']}) re-generating...")
     strong_code = gen_strong(p, task, mock)
     ok2, detail2 = scenarios.verify(strong_code, task["tests"], "run-tests")
-    print(f"    -> Bongo verify (real tests): {'PASS' if ok2 else 'FAIL'} — {detail2}")
+    print(f"    -> Plumbline verify (real tests): {'PASS' if ok2 else 'FAIL'} — {detail2}")
     print(f"\n=== RESULT: {CHEAP['provider']} failed -> escalated to {STRONG['provider']} -> "
           f"{'GREEN (real, cross-provider)' if ok2 else 'still red, try another task'} ===\n")
 

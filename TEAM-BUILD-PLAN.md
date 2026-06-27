@@ -4,20 +4,20 @@
 
 ---
 
-## What Bongo is (refined)
+## What Plumbline is (refined)
 
-Bongo is a **reliability layer for companies that run an LLM API inside a multi-step agentic workflow** (e.g. Håkan's "Brolly" video editor on Gemini, Michelle's "PlugClar", or any startup with an API-powered agent).
+Plumbline is a **reliability layer for companies that run an LLM API inside a multi-step agentic workflow** (e.g. Håkan's "Brolly" video editor on Gemini, Michelle's "PlugClar", or any startup with an API-powered agent).
 
-- **You pick your own model + provider.** Bongo never swaps your model behind your back.
-- **Bongo is NOT a router and NOT OpenRouter.** Those pick a model *for* you by task. Bongo does the opposite: you keep the model you chose, and Bongo watches it.
-- **Bongo sits in the request path and TRACES each step.** No model is 100% accurate — they fetch the wrong data, write the wrong thing, mis-step. Bongo **CATCHES** when your chosen model is inaccurate, **PINPOINTS** which step went wrong, then **INTERVENES** with a solution:
+- **You pick your own model + provider.** Plumbline never swaps your model behind your back.
+- **Plumbline is NOT a router and NOT OpenRouter.** Those pick a model *for* you by task. Plumbline does the opposite: you keep the model you chose, and Plumbline watches it.
+- **Plumbline sits in the request path and TRACES each step.** No model is 100% accurate — they fetch the wrong data, write the wrong thing, mis-step. Plumbline **CATCHES** when your chosen model is inaccurate, **PINPOINTS** which step went wrong, then **INTERVENES** with a solution:
   - **(a) escalate that one step** to a stronger model (cross-provider), and/or
   - **(b) tell you how to improve it next time** (advice on the prompt / which step to pin to the strong model).
-- **The moat: cross-provider + in-the-loop + per-step.** A model lab can only ever improve its *own* model. Bongo improves reliability *across* providers, *inside* your live run, at the *individual step* level.
+- **The moat: cross-provider + in-the-loop + per-step.** A model lab can only ever improve its *own* model. Plumbline improves reliability *across* providers, *inside* your live run, at the *individual step* level.
 
 **One-line moat statement (verbatim for the pitch):** "Cross-provider + in-the-loop + per-step — a model lab only ever improves its own model."
 
-**Wedge line (verbatim):** "You pick the model and the provider. Bongo doesn't pick for you — it catches when YOUR chosen model is wrong, mid-run, and escalates only that step."
+**Wedge line (verbatim):** "You pick the model and the provider. Plumbline doesn't pick for you — it catches when YOUR chosen model is wrong, mid-run, and escalates only that step."
 
 ---
 
@@ -26,13 +26,13 @@ Bongo is a **reliability layer for companies that run an LLM API inside a multi-
 Be precise. Do not overclaim — if a judge inspects the source, every claim below must hold.
 
 **What genuinely exists today:**
-- **A convincing, self-contained DEMO** (`demo/`): `scenarios.py` runs a **real, deterministic verifier** on staged coding tasks; `server.py` serves it on **http://localhost:8200**; `index.html` shows a side-by-side run + scoreboard (cheap ~67% → Bongo 100% → strong 100%). The model outputs are **PINNED** (staged for stage-safety, because small LLMs are non-deterministic); the **verification is real**.
+- **A convincing, self-contained DEMO** (`demo/`): `scenarios.py` runs a **real, deterministic verifier** on staged coding tasks; `server.py` serves it on **http://localhost:8200**; `index.html` shows a side-by-side run + scoreboard (cheap ~67% → Plumbline 100% → strong 100%). The model outputs are **PINNED** (staged for stage-safety, because small LLMs are non-deterministic); the **verification is real**.
 - **`reliability.py`**: the real reliability-loop logic (cheap → verify → escalate), standalone.
 - **`proxy.py`**: an OpenAI-compatible proxy skeleton (caching only, mock mode by default, serves on **http://localhost:8128**) — the *beginning* of the "connect your API" mechanism, not yet wired to the reliability loop or to real provider calls beyond OpenAI.
 - **`demo/real_proof.py`**: a script for ONE genuinely-real cross-provider escalation (Mistral → Anthropic/OpenAI). It reads `MISTRAL_API_KEY` + (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`), generates with the cheap model, runs the **real** tests, and on failure escalates to the strong model on a different provider. **Needs API keys.**
 
 **What is still a demo / not real yet (say this out loud):**
-- There is **no working way today** for a real founder to point Bongo at their own arbitrary workflow (e.g. Brolly) and have it catch failures live. The proxy is not wired to the reliability loop, and reaches only OpenAI's wire format.
+- There is **no working way today** for a real founder to point Plumbline at their own arbitrary workflow (e.g. Brolly) and have it catch failures live. The proxy is not wired to the reliability loop, and reaches only OpenAI's wire format.
 - The stage demo outputs are **pinned**. The only un-pinned, genuinely-real artifact is `real_proof.py`.
 - The Connect card's hosted snippet (`api.bongo.dev`) is **aspirational** — that domain does not resolve. The real, runnable endpoint is `http://localhost:8128`.
 
@@ -42,9 +42,9 @@ Be precise. Do not overclaim — if a judge inspects the source, every claim bel
 
 ## What we were missing
 
-Two gap audits asked "how would a real founder actually USE this today?" Here is what they found and the fixes. The headline: the demo proves the *concept*, but a real founder hits a wall in 60 seconds because **"how does Bongo know MY step is wrong when I have no unit tests?"** is unanswered.
+Two gap audits asked "how would a real founder actually USE this today?" Here is what they found and the fixes. The headline: the demo proves the *concept*, but a real founder hits a wall in 60 seconds because **"how does Plumbline know MY step is wrong when I have no unit tests?"** is unanswered.
 
-**P0 — blockers (without these, "use Bongo" is impossible):**
+**P0 — blockers (without these, "use Plumbline" is impossible):**
 1. **The verifier is "bring your own" and that's the whole product — but it's hard-coded.** Both real engines only catch a failure because the user pre-supplied ground truth (`reliability.py:check_meeting` is one fixed schema; `scenarios.py` needs you to hand it unit tests). Brolly has neither.
    - **Fix:** Reframe as "you bring the check," and ship 3–4 zero-config generic checkers in the `CHECKERS` registry: (a) JSON/format validity, (b) schema-from-one-example, (c) tool-arg validity, (d) LLM-judge-with-rubric as the explicit lower-confidence fallback. Onboarding becomes "paste one good output," not "write unit tests."
 2. **No connect-your-workflow path.** `reliability.py` (the catch loop) and `proxy.py` (the transport) are separate, unconnected files; the proxy only caches and only reaches OpenAI.
@@ -61,9 +61,9 @@ Two gap audits asked "how would a real founder actually USE this today?" Here is
 **P2 — honesty / "will it survive a judge":**
 8. The demo is fully pinned — only safe if said out loud; keep `real_proof.py` recorded next to it as the "this is real" exhibit.
 9. No error handling on the real path (no retry/timeout/4xx handling). **Fix:** wrap provider calls; on transport error, record a trace event ("provider error → escalated") instead of throwing.
-10. "Per-step" is claimed but the unit is a single step. **Fix (scope honestly):** make the trace show a 3-step chain where step 2 fails and Bongo isolates it (pinned is fine).
+10. "Per-step" is claimed but the unit is a single step. **Fix (scope honestly):** make the trace show a 3-step chain where step 2 fails and Plumbline isolates it (pinned is fine).
 
-**The one fix if we only do one:** the zero-config generic checkers (#1) + one wired end-to-end provider path (#2/#3), so a user can point a real app at Bongo and watch it catch one real failure — plus the recorded `real_proof.py`. That is a defensible "you can use it today."
+**The one fix if we only do one:** the zero-config generic checkers (#1) + one wired end-to-end provider path (#2/#3), so a user can point a real app at Plumbline and watch it catch one real failure — plus the recorded `real_proof.py`. That is a defensible "you can use it today."
 
 ---
 
@@ -73,8 +73,8 @@ Two gap audits asked "how would a real founder actually USE this today?" Here is
 
 Build order is critical-path: do **B + C6 + README + QUICKSTART first** (Filip is blocked until the run-card and a mock-validated `real_proof.py` exist), then A/C/D in parallel.
 
-**B — Make Bongo work end-to-end for one simple workflow (mock/offline, no keys):**
-- [ ] **B1.** Wire `reliability.py:run_step()` (cheap→verify→retry→strong) into `proxy.py`'s POST handler, behind the existing `BONGO_REAL` flag; default to mock. **Done-when:** POSTing a JSON-extraction prompt to `localhost:8128` returns a Bongo trace (attempts + fixed_by) in mock mode, no key.
+**B — Make Plumbline work end-to-end for one simple workflow (mock/offline, no keys):**
+- [ ] **B1.** Wire `reliability.py:run_step()` (cheap→verify→retry→strong) into `proxy.py`'s POST handler, behind the existing `BONGO_REAL` flag; default to mock. **Done-when:** POSTing a JSON-extraction prompt to `localhost:8128` returns a Plumbline trace (attempts + fixed_by) in mock mode, no key.
 - [ ] **B2.** Add a per-request verify hook: a `bongo_verify` field (or a default JSON-schema check) selects a checker from `CHECKERS`. **Done-when:** the proxy records pass/fail per request.
 - [ ] **B3.** Add Mistral + Anthropic call sites to the proxy/strong path, mirroring `real_proof.py`'s `call_mistral`/`call_strong`, gated behind `BONGO_REAL` + env keys, mock strings otherwise. **Done-when:** cross-provider code paths exist and pass in mock; flipping the flag + adding a key is the ONLY thing Filip must do.
 - [ ] **B4.** Add a `--mock` mode to `demo/real_proof.py` that fakes the Mistral failure + Anthropic fix so Claude can validate the script's narrative/output formatting WITHOUT keys. **Done-when:** `python3 demo/real_proof.py --mock` prints the full red→escalate→green narrative with no keys.
@@ -86,7 +86,7 @@ Build order is critical-path: do **B + C6 + README + QUICKSTART first** (Filip i
 
 **A — Make install/use unmistakable in the DEMO:**
 - [ ] **A1.** Connect card: add a second snippet pointing at the **real** `http://localhost:8128`, next to the aspirational hosted URL. **Done-when:** the "change one line" claim is copy-pasteable and actually runs.
-- [ ] **A2.** Add a 4th "how it works" step showing what Bongo gives BACK ("step 3 fetched wrong data → escalated to Anthropic → fixed; step 5 was fine"). **Done-when:** a non-technical viewer can state the per-step output in one sentence.
+- [ ] **A2.** Add a 4th "how it works" step showing what Plumbline gives BACK ("step 3 fetched wrong data → escalated to Anthropic → fixed; step 5 was fine"). **Done-when:** a non-technical viewer can state the per-step output in one sentence.
 - [ ] **A3.** Bridge toy → real: one line framing the coding demo as a stand-in for Brolly's steps (storyboard → fetch clips → cut → caption). **Done-when:** the demo explicitly ties coding tasks to a real agent's steps.
 - [ ] **A4.** Kill router/OpenRouter confusion on screen: put "you pick your model" in the hero. **Done-when:** the wedge line is in the hero, not just the footer.
 
@@ -115,8 +115,8 @@ Build order is critical-path: do **B + C6 + README + QUICKSTART first** (Filip i
 
 **Read this first (10 seconds).** Your ONE job: get two API keys, set them as environment variables, run ONE Python script, and screen-record it. Then record a 90-second backup video of the demo. That's it. **Do NOT edit any code. Do NOT pick different models. Do NOT paste keys into any file in the repo.** Follow each step exactly. After each step there's a "→ you should see" line — if you do NOT see that, STOP and ping Håkan. Total time ~25 minutes.
 
-- The repo is at: `/Users/hakanwang/Bongo`
-- The script you'll run is: `/Users/hakanwang/Bongo/demo/real_proof.py`
+- The repo is at: `/Users/hakanwang/Plumbline`
+- The script you'll run is: `/Users/hakanwang/Plumbline/demo/real_proof.py`
 
 ---
 
@@ -223,17 +223,17 @@ source ~/.zshrc
 
 **17.** Run the proof. The script imports `scenarios.py` from the same folder, so run it from inside `demo/`. Copy-paste exactly:
 ```
-cd /Users/hakanwang/Bongo/demo && python3 real_proof.py
+cd /Users/hakanwang/Plumbline/demo && python3 real_proof.py
 ```
-(If that errors with "No module named scenarios", instead run: `cd /Users/hakanwang/Bongo && python3 demo/real_proof.py` — but try the first one FIRST.)
+(If that errors with "No module named scenarios", instead run: `cd /Users/hakanwang/Plumbline && python3 demo/real_proof.py` — but try the first one FIRST.)
 → you should see output with this SHAPE (exact code/text varies):
 ```
-=== Bongo real cross-provider proof — task: roman_to_int() ===
+=== Plumbline real cross-provider proof — task: roman_to_int() ===
 [1] CHEAP model  (Mistral / mistral-small-latest) generating...
-    -> Bongo verify (real tests): FAIL — <some detail>
-[2] Bongo caught a SILENT failure -> escalating THIS step across providers
+    -> Plumbline verify (real tests): FAIL — <some detail>
+[2] Plumbline caught a SILENT failure -> escalating THIS step across providers
 [3] STRONG model (Anthropic / claude-sonnet-4-5) re-generating...
-    -> Bongo verify (real tests): PASS — ...
+    -> Plumbline verify (real tests): PASS — ...
 === RESULT: Mistral failed -> escalated to Anthropic -> GREEN (real, cross-provider) ===
 ```
 **That "Mistral failed -> escalated to Anthropic -> GREEN" line is the gold. That is the proof.**
@@ -247,7 +247,7 @@ Re-run (try `slugify`, then `roman_to_int` a couple times) until you get the GRE
 **TROUBLESHOOTING (match the error text):**
 - "Set MISTRAL_API_KEY…" / "Set ANTHROPIC_API_KEY…" → the var isn't set in THIS terminal. Redo step 14 here, re-run.
 - "command not found: python3" → run `python3 --version`; if it fails, tell Håkan.
-- "No module named scenarios" → wrong folder. Use `cd /Users/hakanwang/Bongo/demo && python3 real_proof.py`.
+- "No module named scenarios" → wrong folder. Use `cd /Users/hakanwang/Plumbline/demo && python3 real_proof.py`.
 - "401" / "Unauthorized" / "invalid api key" → key has a typo/space. Re-copy (Mistral = no prefix, Anthropic = `sk-ant-`), redo step 14.
 - "402" / "billing" / "credit" / "quota" / "insufficient" → billing not set up. Go back to step 3 (Mistral) or step 9 (Anthropic).
 - "urlopen error" / timeout → check wifi, re-run.
@@ -256,7 +256,7 @@ Re-run (try `slugify`, then `roman_to_int` a couple times) until you get the GRE
 
 #### PART E — SCREEN-RECORD THE RUN (this recording IS the deliverable)
 
-**18.** Get ready BEFORE recording: Terminal open, in `/Users/hakanwang/Bongo/demo`, keys verified with the MASKED check in step 15. Make the Terminal window big. **Do not echo full keys on screen.**
+**18.** Get ready BEFORE recording: Terminal open, in `/Users/hakanwang/Plumbline/demo`, keys verified with the MASKED check in step 15. Make the Terminal window big. **Do not echo full keys on screen.**
 
 **19.** Start the macOS recorder: press `Cmd + Shift + 5`.
 → a small control bar appears at the bottom.
@@ -276,10 +276,10 @@ python3 real_proof.py
 
 **23.** Rename to `bongo-real-proof.mov` and move it into the repo. Copy-paste (adjust source name if needed):
 ```
-mv ~/Desktop/bongo-real-proof.mov /Users/hakanwang/Bongo/demo/bongo-real-proof.mov
+mv ~/Desktop/bongo-real-proof.mov /Users/hakanwang/Plumbline/demo/bongo-real-proof.mov
 ```
-(If the Desktop file still has its default name, rename in Finder first, or use `mv ~/Desktop/"Screen Recording"*.mov /Users/hakanwang/Bongo/demo/bongo-real-proof.mov`.)
-→ `ls /Users/hakanwang/Bongo/demo/bongo-real-proof.mov` prints that path (no "No such file"). Done — the real proof is captured.
+(If the Desktop file still has its default name, rename in Finder first, or use `mv ~/Desktop/"Screen Recording"*.mov /Users/hakanwang/Plumbline/demo/bongo-real-proof.mov`.)
+→ `ls /Users/hakanwang/Plumbline/demo/bongo-real-proof.mov` prints that path (no "No such file"). Done — the real proof is captured.
 
 ---
 
@@ -289,33 +289,33 @@ This is the safe backup. Outputs are PINNED (deterministic) so it ALWAYS works �
 
 **24.** Open a NEW Terminal window (`Cmd+N`). Copy-paste and press Enter:
 ```
-cd /Users/hakanwang/Bongo && python3 demo/server.py
+cd /Users/hakanwang/Plumbline && python3 demo/server.py
 ```
-→ you should see a line mentioning **port 8200** (e.g. "Bongo dashboard: http://localhost:8200"). **LEAVE this terminal running.** (If it says "Address already in use", the server is already up — fine, continue.)
+→ you should see a line mentioning **port 8200** (e.g. "Plumbline dashboard: http://localhost:8200"). **LEAVE this terminal running.** (If it says "Address already in use", the server is already up — fine, continue.)
 
 **25.** In your browser go to EXACTLY: `http://localhost:8200`
-→ you should see the Bongo demo page (side-by-side view + scoreboard).
+→ you should see the Plumbline demo page (side-by-side view + scoreboard).
 
 **26.** Start recording: `Cmd + Shift + 5` → **Record Entire Screen** (or box the browser) → **Record**.
 → recording indicator top-right.
 
 **27.** Click the **Run** button (may read "Run demo" / "Run all"). Let the scenarios play and the scoreboard fill in. Keep it under ~90 seconds; once the scoreboard shows the result, wait 2 seconds, then stop.
-→ the page shows side-by-side results + an updated scoreboard (cheap ~67% / Bongo 100% / strong 100%).
+→ the page shows side-by-side results + an updated scoreboard (cheap ~67% / Plumbline 100% / strong 100%).
 
 **28.** Stop the recording (`Cmd + Shift + 5` → Stop). It saves to the Desktop.
 
 **29.** Rename and move into the repo:
 ```
-mv ~/Desktop/"Screen Recording"*.mov /Users/hakanwang/Bongo/demo/bongo-demo-fallback.mov
+mv ~/Desktop/"Screen Recording"*.mov /Users/hakanwang/Plumbline/demo/bongo-demo-fallback.mov
 ```
-(If the wildcard matches several files, rename by hand in Finder to `bongo-demo-fallback.mov` and drag it into `/Users/hakanwang/Bongo/demo/`.)
-→ `ls /Users/hakanwang/Bongo/demo/bongo-demo-fallback.mov` prints that path. Done.
+(If the wildcard matches several files, rename by hand in Finder to `bongo-demo-fallback.mov` and drag it into `/Users/hakanwang/Plumbline/demo/`.)
+→ `ls /Users/hakanwang/Plumbline/demo/bongo-demo-fallback.mov` prints that path. Done.
 
 ---
 
 #### WHEN YOU'RE DONE — message Håkan exactly this:
 
-> "Both videos are in `/Users/hakanwang/Bongo/demo/`:
+> "Both videos are in `/Users/hakanwang/Plumbline/demo/`:
 > 1. `bongo-real-proof.mov` — real Mistral→Anthropic escalation, ended GREEN.
 > 2. `bongo-demo-fallback.mov` — the pinned side-by-side + scoreboard demo.
 > Keys are set in my terminal (and `~/.zshrc`). I did not edit any code or commit any keys."
@@ -330,10 +330,10 @@ mv ~/Desktop/"Screen Recording"*.mov /Users/hakanwang/Bongo/demo/bongo-demo-fall
 
 We are DONE when ALL of these are true:
 
-1. **The pinned demo runs in one command, offline, deterministically.** `python3 demo/server.py` → `http://localhost:8200` → "Run" shows left ending RED with a real failing-assert line, right flipping RED→GREEN with "escalated to Anthropic." Scoreboard matches `python3 demo/scenarios.py` (cheap ~67% / Bongo 100% / strong 100%). Verified 10/10 identical (C1) and works with wifi off.
+1. **The pinned demo runs in one command, offline, deterministically.** `python3 demo/server.py` → `http://localhost:8200` → "Run" shows left ending RED with a real failing-assert line, right flipping RED→GREEN with "escalated to Anthropic." Scoreboard matches `python3 demo/scenarios.py` (cheap ~67% / Plumbline 100% / strong 100%). Verified 10/10 identical (C1) and works with wifi off.
 2. **The real cross-provider proof is RECORDED.** `bongo-real-proof.mov` exists in `demo/`, showing two real providers, a real Mistral failure, real escalation to Anthropic, and a real GREEN re-verify. (And we've confirmed a guaranteed-failing task exists so this is reproducible — B5.)
 3. **The 90-second fallback video exists** (`bongo-demo-fallback.mov` in `demo/`) on the presenting laptop.
 4. **A founder can answer "how do I use this?" in 3 steps.** `QUICKSTART.md` is honest and outsider-followable; the Connect card shows the real `http://localhost:8128` snippet; the README leads with reliability, not caching.
-5. **The "how does Bongo know MY step is wrong?" answer exists and is demonstrable** — at least the `format` zero-config checker works on a step with no unit tests (B6), and the trace shows the "(b) how to fix next time" advice (B7).
+5. **The "how does Plumbline know MY step is wrong?" answer exists and is demonstrable** — at least the `format` zero-config checker works on a step with no unit tests (B6), and the trace shows the "(b) how to fix next time" advice (B7).
 6. **We can stay honest under questioning.** Both rebuttals ("is it faked?" / "how do users adopt?") are written; the pinned-vs-real distinction is stated out loud; no fictional `api.bongo.dev` is shown as if live.
 7. **Stage is safe.** `BONGO_REAL` is OFF for the stage demo (it never reads a key); ports 8128/8200 are free and reset clean (C7); Håkan has local copies of both videos and the pitch one-pager.

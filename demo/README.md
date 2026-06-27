@@ -1,8 +1,7 @@
-# Bongo demo (the previewable product)
+# Plumbline demo (the previewable product)
 
-The thing you show on stage. A cheap coding agent fixes failing tests, **fails silently**,
-and Bongo catches it (by running the real tests — deterministic) and escalates only that
-step to a stronger model → green. Then the cost + reliability scoreboard.
+The thing you show on stage. A cheap agent runs a finance step, silently wires the wrong amount, and Plumbline catches it
+against the trade's real arithmetic, walks the recovery ladder, and ends correct. Plus the scoreboard.
 
 ## Run it
 ```bash
@@ -27,12 +26,11 @@ No dependencies (Python stdlib only). Works offline.
 ## Current numbers (per 1,000 runs)
 | | reliability | $/1k | broken shipped |
 |---|---|---|---|
-| Cheap alone | 67% | $2 | 2 |
-| **Cheap + Bongo** | **100%** | **$15.33** | **0** |
-| Expensive alone | 100% | $40 | 0 |
+| Cheap alone | 60% | cheapest | 3 |
+| **Cheap + Plumbline** | **100%** | **78% cheaper** | **0** |
+| Expensive alone | 100% | most expensive | 0 |
 
-→ **100% reliable, 62% cheaper than the expensive model.** The cheap model alone silently
-shipped 2 broken results.
+→ **100% reliable, 78% cheaper than the big model.** Cheap alone silently shipped 3 broken results (incl. a wrong wire).
 
 ## Next (see ../BUILD-PLAN.md)
 - [P1] real-API live mode (`BONGO_REAL=1`)
