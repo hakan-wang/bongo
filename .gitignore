@@ -1,4 +1,21 @@
+# Python
 __pycache__/
 *.pyc
-.DS_Store
+.venv/
+venv/
+
+# Env / secrets — NEVER commit API keys
 .env
+.env.*
+*.key
+secrets/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+node_modules/

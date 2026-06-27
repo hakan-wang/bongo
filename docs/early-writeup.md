@@ -1,3 +1,9 @@
+> ⚠️ **SUPERSEDED — earlier idea.** This describes a standalone "verifier / proof layer
+> that catches agents faking success." The current canonical direction is **Bongo = make
+> cheap models reliable + cut cost** (see [`/info/SOURCE-OF-TRUTH.md`](../info/SOURCE-OF-TRUTH.md)).
+> The deterministic-verification insight below is now Bongo's VERIFY step. Keep this doc for
+> its **market figures and competitor list**, which still apply.
+
 # Agent Reality-Check: Full Write-up
 
 A plain, honest write-up of the problem, market, solution, and business. Not written to sell. Written to be true.
