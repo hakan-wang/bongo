@@ -1,0 +1,66 @@
+# Bongo — Quickstart
+
+**Bongo makes a cheap AI model reliable.** You pick your model; Bongo watches every step of
+your agent, catches when the model is wrong, and fixes it — by escalating only the broken step
+to a stronger model (on any provider), or telling you how to improve. It is **not a router**:
+you keep the model you chose.
+
+Everything below runs offline (Python 3, stdlib only — **no `pip install`, no keys** to start).
+
+---
+
+## 1. See the demo (30 seconds, no keys)
+```bash
+python3 demo/server.py
+# open http://localhost:8200  and click "Run the demo"
+```
+A cheap coding agent fixes failing tests, **fails silently**, and Bongo catches it (by running
+the real tests) and escalates just that step to a stronger model → red turns green. The
+scoreboard shows: cheap ~67% reliable → **cheap + Bongo = 100%, ~62% cheaper** than the
+expensive model.
+
+## 2. See a real cross-provider catch (needs keys)
+```bash
+python3 demo/real_proof.py --mock     # dry-run the narrative, no keys
+# then, with keys set (see .env.example):
+python3 demo/real_proof.py            # real Mistral -> Anthropic escalation
+```
+
+## 3. Connect your own workflow (the product)
+Point your OpenAI-compatible client at the Bongo gateway and keep your own key:
+```bash
+python3 demo/gateway.py               # http://localhost:8129/v1  (mock by default)
+```
+```python
+from openai import OpenAI
+client = OpenAI(
+    base_url="http://localhost:8129/v1",   # <- the only change
+    api_key=YOUR_KEY,                        # your key, passes through
+)
+# optional: tell Bongo how to check this step (zero-config 'format' is the default)
+resp = client.chat.completions.create(
+    model="mistral-small",
+    messages=[{"role": "user", "content": "..."}],
+    extra_body={"bongo": {"checker": "format"}},
+)
+print(resp.bongo)   # what Bongo caught / fixed / advised
+```
+
+**How does Bongo know YOUR step is wrong if you have no unit tests?** You bring a check, or use
+a zero-config one. Built-in checkers: `format` (valid/non-empty — the default), `schema-from-example`
+(paste one good output), `json-schema`, `tool-args`, and `llm-judge` (fuzzy fallback, lower
+confidence — we lead with the deterministic ones).
+
+---
+
+## Honest status (mid-build)
+- The on-stage demo's **model outputs are pinned** (deterministic) so it always works; the
+  **verification is real** (it runs the tests). The one un-pinned, genuinely-real artifact is
+  `demo/real_proof.py`.
+- `demo/gateway.py` is a working **mock** of the connect path; flip `BONGO_REAL=1` + keys to
+  make the calls real. Pointing it at an arbitrary production workflow end-to-end is the next
+  milestone, not done yet.
+- `api.bongo.dev` shown in some screens is **aspirational** — the real local endpoint is
+  `http://localhost:8129/v1`.
+
+See `TEAM-BUILD-PLAN.md` for what's left and who's building it.

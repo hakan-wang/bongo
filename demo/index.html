@@ -51,6 +51,7 @@
   .step.pass .ic{color:var(--green)} .step.fail .ic{color:var(--red)}
   .step.catch{color:var(--amber)} .step.catch .ic{color:var(--amber)}
   .step.escalate{color:var(--bongo2)} .step.escalate .ic{color:var(--bongo2)}
+  .step.advice{color:var(--bongo2);align-items:center} .step.advice .ic{color:var(--amber)}
   /* scoreboard */
   .board{margin-top:26px;opacity:0;transform:translateY(10px);transition:.5s}
   .board.show{opacity:1;transform:none}
@@ -148,9 +149,10 @@
     <h3>How you connect (one line)</h3>
     <pre><span class="c"># Point your app at Bongo, keep your own API key. Any provider.</span>
 client = OpenAI(
-    base_url=<span class="k">"https://api.bongo.dev/v1"</span>,   <span class="c"># &lt;- the only change</span>
-    api_key=YOUR_KEY,
-)</pre>
+    base_url=<span class="k">"http://localhost:8129/v1"</span>,   <span class="c"># &lt;- the only change (runs today)</span>
+    api_key=YOUR_KEY,                       <span class="c"># your key, passes through</span>
+)
+<span class="c"># hosted api.bongo.dev is coming; the local gateway works now (python3 demo/gateway.py)</span></pre>
     <div class="conn-row">
       <input placeholder="Paste your API key (passes through, never stored)" />
       <select>
@@ -172,10 +174,10 @@ client = OpenAI(
 <script>
 const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const ICON = {pass:"✓", fail:"✕", catch:"⚡", escalate:"↗", ok:"·"};
+const ICON = {pass:"✓", fail:"✕", catch:"⚡", escalate:"↗", advice:"💡", ok:"·"};
 
 function stepRow(s){
-  const cls = ({pass:"pass",fail:"fail",catch:"catch",ok:""})[s.status] ?? "";
+  const cls = ({pass:"pass",fail:"fail",catch:"catch",advice:"advice",ok:""})[s.status] ?? "";
   const esc = s.role==="strong" && s.status==="ok";
   const c2 = esc ? "escalate" : cls;
   const ic = esc ? ICON.escalate : (ICON[s.status]||ICON.ok);

@@ -224,11 +224,64 @@ def _check_json_schema(obj_text, required):
     return True, "schema valid"
 
 
-# the registry — surfaced in the UI so judges see it's a verification *system*
+# --- ZERO-CONFIG checkers: how Bongo checks a step when you have NO unit tests ---
+# This is the onboarding answer: "you bring a check, or we use a generic one." A real
+# founder (Brolly, a support bot) doesn't have unit tests — these work out of the box.
+def _check_format(output, _ignored=None):
+    """Zero-config default: is the output well-formed?
+    If it looks like JSON (starts with { or [) it MUST parse; otherwise just non-empty."""
+    import json
+    s = (output or "").strip()
+    if not s:
+        return False, "empty output"
+    if s[0] in "{[":
+        try:
+            json.loads(s)
+            return True, "valid JSON"
+        except Exception as e:
+            return False, f"looks like JSON but is malformed: {e}"
+    return (len(s) > 1, "non-empty text" if len(s) > 1 else "malformed/too short")
+
+
+def _check_schema_from_example(output, example):
+    """Paste ONE good output; Bongo checks new outputs match its shape (keys + types)."""
+    import json
+    try:
+        got, want = json.loads(output), json.loads(example)
+    except Exception as e:
+        return False, f"invalid JSON: {e}"
+    if not isinstance(got, dict) or not isinstance(want, dict):
+        return (type(got) == type(want), "shape matches example")
+    for k, v in want.items():
+        if k not in got:
+            return False, f"missing field '{k}' (present in your example)"
+        if type(got[k]) != type(v):
+            return False, f"field '{k}' has wrong type (got {type(got[k]).__name__})"
+    return True, "matches your example's shape"
+
+
+def _check_tool_args(output, required):
+    """Check a tool/function call's arguments are valid JSON with the required fields."""
+    return _check_json_schema(output, required)
+
+
+def _check_llm_judge(output, rubric):
+    """Lower-confidence fallback for fuzzy steps (no deterministic ground truth).
+    Stub here; the real gateway plugs in a small judge model. Labeled lower-confidence
+    on purpose — we LEAD with deterministic checks."""
+    s = (output or "").strip()
+    return (len(s) > 0, "llm-judge (lower confidence) — needs a model to score the rubric")
+
+
+# the registry — surfaced in the UI so judges see it's a verification *system*,
+# not one if-statement and not an LLM grading an LLM.
 CHECKERS = {
-    "run-tests":   _check_run_tests,    # code: execute + assert (used in this demo)
-    "json-schema": _check_json_schema,  # structured output: required fields/types
-    # "tool-args", "citation-exists", "recompute-math" ... same pattern, deterministic
+    "run-tests":          _check_run_tests,            # code: execute + assert (this demo)
+    "format":             _check_format,               # ZERO-CONFIG default (valid/non-empty)
+    "schema-from-example": _check_schema_from_example,  # paste one good output
+    "json-schema":        _check_json_schema,          # required fields/types
+    "tool-args":          _check_tool_args,            # tool-call arguments valid
+    "llm-judge":          _check_llm_judge,            # fuzzy fallback (lower confidence)
 }
 
 
@@ -270,10 +323,13 @@ def run_task(task, mode):
          "pass" if passed else "fail", checker="run-tests", output=detail)
 
     fixed_by = mode
+    advice = None
     # --- Bongo intervention: escalate ONLY the failing step, to a DIFFERENT provider ---
     if mode == "bongo" and not passed:
+        fail_reason = detail  # capture the pinpointed reason before re-verify overwrites it
         step("Bongo: silent failure caught", "bongo",
-             "tests failed but no error was thrown — escalating just this step", "catch")
+             f"the cheap model's output failed the check ({fail_reason}) — no error was thrown; "
+             f"escalating just this step", "catch")
         step(f"Escalate this step to {PROVIDER['strong']['provider']}", "strong",
              f"re-generated {task['name']}() with a stronger model on another provider", "ok")
         cost += COST["strong"]
@@ -282,6 +338,12 @@ def run_task(task, mode):
         step("Verify — run tests", "verifier", detail,
              "pass" if passed else "fail", checker="run-tests", output=detail)
         fixed_by = "bongo-escalation"
+        # (b) advise how to improve next time — Bongo doesn't just fix, it tells you why
+        advice = (f"'{task['name']}' failed the run-tests check ({fail_reason}). Bongo escalated it "
+                  f"from {PROVIDER['cheap']['provider']} to {PROVIDER['strong']['provider']} and it passed. "
+                  f"Next time: pin this step to the stronger model, or add a prompt constraint covering "
+                  f"the case that broke.")
+        step("Bongo advice", "bongo", advice, "advice")
 
     return {
         "task": task["name"],
@@ -291,6 +353,7 @@ def run_task(task, mode):
         "passed": passed,
         "cost": cost,
         "fixed_by": fixed_by,
+        "advice": advice,
         "shipped_broken": (not passed),
     }
 

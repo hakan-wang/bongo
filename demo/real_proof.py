@@ -1,19 +1,23 @@
 """
 Bongo — ONE genuinely-real cross-provider escalation, captured.
 
-This proves the moat is real (not just a pinned label): a CHEAP model on one provider
-generates code, Bongo runs the REAL tests, and on failure escalates that step to a STRONG
-model on a DIFFERENT provider — then re-verifies. Run it once with your keys and screen-record
-the output as proof; the on-stage demo stays pinned (cheap LLMs are non-deterministic).
+Proves the moat is real (not just a pinned label): a CHEAP model on one provider generates,
+Bongo runs the REAL tests, and on failure escalates that step to a STRONG model on a
+DIFFERENT provider — then re-verifies. Run it once with your keys and screen-record it; the
+on-stage demo stays pinned (cheap LLMs are non-deterministic).
 
 Requires (stdlib only, no pip):
   export MISTRAL_API_KEY=...        # the cheap model (Mistral)
   export ANTHROPIC_API_KEY=...      # the strong model (Anthropic)   [or OPENAI_API_KEY]
 Run:
-  python3 demo/real_proof.py            # default task: roman_to_int (trips small models)
-  python3 demo/real_proof.py slugify
+  python3 demo/real_proof.py            # real call, default task: roman_to_int
+  python3 demo/real_proof.py slugify    # a harder task if the cheap model gets lucky
+  python3 demo/real_proof.py --mock     # NO keys — dry-run the narrative/formatting
 """
-import json, os, re, sys, urllib.request
+import os
+import sys
+
+import providers
 import scenarios
 
 CHEAP = {"provider": "Mistral", "model": os.environ.get("BONGO_CHEAP_MODEL", "mistral-small-latest")}
@@ -23,59 +27,42 @@ STRONG = ({"provider": "Anthropic", "model": os.environ.get("BONGO_STRONG_MODEL"
           {"provider": "OpenAI", "model": os.environ.get("BONGO_STRONG_MODEL", "gpt-4o")})
 
 
-def _post(url, headers, payload):
-    req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
-    with urllib.request.urlopen(req, timeout=90) as r:
-        return json.loads(r.read())
-
-
-def call_mistral(prompt):
-    data = _post("https://api.mistral.ai/v1/chat/completions",
-                 {"Authorization": "Bearer " + os.environ["MISTRAL_API_KEY"],
-                  "Content-Type": "application/json"},
-                 {"model": CHEAP["model"], "temperature": 0,
-                  "messages": [{"role": "user", "content": prompt}]})
-    return data["choices"][0]["message"]["content"]
-
-
-def call_strong(prompt):
-    if USE_ANTHROPIC:
-        data = _post("https://api.anthropic.com/v1/messages",
-                     {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                      "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
-                     {"model": STRONG["model"], "max_tokens": 1024,
-                      "messages": [{"role": "user", "content": prompt}]})
-        return "".join(b.get("text", "") for b in data["content"])
-    data = _post("https://api.openai.com/v1/chat/completions",
-                 {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"],
-                  "Content-Type": "application/json"},
-                 {"model": STRONG["model"], "temperature": 0,
-                  "messages": [{"role": "user", "content": prompt}]})
-    return data["choices"][0]["message"]["content"]
-
-
-def extract_code(text):
-    m = re.search(r"```(?:python)?\n(.*?)```", text, re.S)
-    return (m.group(1) if m else text).strip()
-
-
 def prompt_for(task):
     return (f"Write a correct Python function for this task. Return ONLY a code block.\n\n"
             f"Task: {task['desc']}\nIt must pass these tests:\n{task['tests']}")
 
 
-def main():
-    for k in (["MISTRAL_API_KEY"] + (["ANTHROPIC_API_KEY"] if USE_ANTHROPIC else ["OPENAI_API_KEY"])):
-        if not os.environ.get(k):
-            sys.exit(f"Set {k} (and MISTRAL_API_KEY). See the header of this file.")
+def gen_cheap(prompt, task, mock):
+    return task["cheap_code"] if mock else providers.extract_code(providers.call_mistral(prompt, CHEAP["model"]))
 
-    name = sys.argv[1] if len(sys.argv) > 1 else "roman_to_int"
+
+def gen_strong(prompt, task, mock):
+    if mock:
+        return task["strong_code"]
+    text = providers.call_anthropic(prompt, STRONG["model"]) if USE_ANTHROPIC \
+        else providers.call_openai(prompt, STRONG["model"])
+    return providers.extract_code(text)
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    mock = "--mock" in args
+    args = [a for a in args if a != "--mock"]
+    name = args[0] if args else "roman_to_int"
+
+    if not mock:
+        need = ["MISTRAL_API_KEY"] + (["ANTHROPIC_API_KEY"] if USE_ANTHROPIC else ["OPENAI_API_KEY"])
+        for k in need:
+            if not os.environ.get(k):
+                sys.exit(f"Set {k} (and MISTRAL_API_KEY) — or run with --mock. See the file header.")
+
     task = next(t for t in scenarios.TASKS if t["name"] == name)
     p = prompt_for(task)
+    tag = " (MOCK — no real API calls)" if mock else ""
 
-    print(f"\n=== Bongo real cross-provider proof — task: {name}() ===\n")
+    print(f"\n=== Bongo real cross-provider proof — task: {name}(){tag} ===\n")
     print(f"[1] CHEAP model  ({CHEAP['provider']} / {CHEAP['model']}) generating...")
-    cheap_code = extract_code(call_mistral(p))
+    cheap_code = gen_cheap(p, task, mock)
     ok, detail = scenarios.verify(cheap_code, task["tests"], "run-tests")
     print(f"    -> Bongo verify (real tests): {'PASS' if ok else 'FAIL'} — {detail}")
 
@@ -86,7 +73,7 @@ def main():
 
     print(f"\n[2] Bongo caught a SILENT failure -> escalating THIS step across providers")
     print(f"[3] STRONG model ({STRONG['provider']} / {STRONG['model']}) re-generating...")
-    strong_code = extract_code(call_strong(p))
+    strong_code = gen_strong(p, task, mock)
     ok2, detail2 = scenarios.verify(strong_code, task["tests"], "run-tests")
     print(f"    -> Bongo verify (real tests): {'PASS' if ok2 else 'FAIL'} — {detail2}")
     print(f"\n=== RESULT: {CHEAP['provider']} failed -> escalated to {STRONG['provider']} -> "

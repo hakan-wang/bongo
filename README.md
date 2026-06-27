@@ -1,24 +1,44 @@
 # Bongo
 
-**Run the cheap model. Bongo makes it reliable, and cuts your bill.**
+**Run the cheap model. Bongo makes it reliable.**
 
-Bongo is a drop-in layer that sits between your app and the LLM API. Change one line (the base URL), keep your own key. Bongo watches every step of a multi-step agent, catches the cheap model's mistakes, corrects them, and stops you paying twice for the same tokens. Independent and cross-model (Gemini, OpenAI, Anthropic, open models).
+You pick your own AI model. Bongo sits in front of it, **watches every step** of your agent,
+**catches when the model is wrong** — even when it fails silently (looks fine, nothing crashes,
+the answer is just inaccurate) — **pinpoints what broke**, and **fixes it**: it escalates only
+that one step to a stronger model (on any provider), or tells you how to improve. You keep the
+cheap model's price and get the expensive model's reliability.
 
-Built at Paris Builds (Unaite hackathon).
+> **Not a router.** OpenRouter and friends pick a model *for* you. Bongo does the opposite —
+> you keep the model you chose, and Bongo catches when it's wrong, mid-run, per step.
+> The moat: **cross-provider + in-the-loop + per-step** — a model lab only improves its own model.
 
-## Repo
-- `VISION.md` — what Bongo is, the core insight, objections answered.
-- `PLAN.md` — living build plan and open decisions.
-- `proxy.py` — v0 cost proxy (OpenAI-compatible, caching, savings tracking). Runs offline in mock mode.
-- `dashboard.html` — live savings dashboard.
-- `demo_traffic.py` — sample agent traffic that shows the bill being cut.
-- `docs/` — background research and hackathon context.
+Built at Paris Builds (Unaite × Y Combinator).
 
-## Run the v0
+## Try it in 30 seconds (no keys, offline)
+```bash
+python3 demo/server.py     # open http://localhost:8200 and click "Run the demo"
 ```
-python3 proxy.py        # serves http://localhost:8128 , dashboard at /
-python3 demo_traffic.py # in another terminal, sends sample traffic
-```
+A cheap coding agent fails a test silently; Bongo runs the real tests, catches it, and
+escalates only that step to a stronger model on another provider → red turns green.
+**Cheap ~67% reliable → cheap + Bongo = 100%, ~62% cheaper than the expensive model.**
 
-## Status
-Cost layer works (about 70% bill cut on repeated agent traffic). The reliability core (watch, catch, correct cheap-model errors) is the main feature and is next.
+See **[`QUICKSTART.md`](QUICKSTART.md)** to connect your own workflow.
+
+## Repo map
+- **[`QUICKSTART.md`](QUICKSTART.md)** — run the demo, see the real proof, connect your API.
+- **[`TEAM-BUILD-PLAN.md`](TEAM-BUILD-PLAN.md)** — what's left + the work split (**Filip: start here**).
+- **[`info/`](info/)** — strategy, judges, competitors, technical playbook, pitch (start at `info/SOURCE-OF-TRUTH.md`).
+- `demo/` — the reliability demo + the real cross-provider proof:
+  - `scenarios.py` — real deterministic verifier (runs tests) + the cheap→verify→escalate loop + checker registry.
+  - `server.py` / `index.html` — the previewable dashboard (`:8200`).
+  - `gateway.py` — the wired "point your `base_url` at Bongo" path (`:8129`, OpenAI-compatible, mock by default).
+  - `real_proof.py` — ONE genuinely-real Mistral→Anthropic escalation (needs keys; `--mock` to dry-run).
+  - `providers.py` — shared cross-provider call shapers.
+- `reliability.py` — the core reliability-loop logic (cheap → verify → escalate).
+- `proxy.py` + `dashboard.html` + `demo_traffic.py` — the cost/caching side (a kicker, ~70% bill cut on repeated traffic), `:8128`.
+
+## Honest status
+The on-stage demo's model outputs are **pinned** (deterministic, so it always works); the
+**verification is real**. `demo/real_proof.py` is the un-pinned, genuinely-real cross-provider
+proof. `demo/gateway.py` is a working mock of the connect path (flip `BONGO_REAL=1` + keys for
+real calls). Full production "point at any workflow" is the next milestone — see `TEAM-BUILD-PLAN.md`.
