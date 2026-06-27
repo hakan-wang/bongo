@@ -1,7 +1,13 @@
 # Design Partners & LOIs (traction)
 
 Running list of people who've committed interest. Show this to judges as traction.
-Keep it honest: "LOI / verbal commit," not "revenue."
+Keep it honest: "LOI / verbal commit / pipeline," not "collected revenue."
+
+## Traction summary (for the pitch)
+- Multiple signed LOIs in our first days.
+- Notable: **Skeptiva** (≈$50M-backed) [confirm exact name/figure], plus [PLACEHOLDER LOI 2], [PLACEHOLDER LOI 3], and several CEOs.
+- **Combined ≈ $10k MRR in signed LOIs** (intent-to-pay pipeline, not yet collected). Honest phrasing on stage: "signed LOIs representing about $10k in monthly recurring pipeline."
+- TODO: confirm each company's exact name, the backing figure, and per-LOI committed amount before quoting numbers publicly.
 
 ## 1. Julio Anthony Leonard  (data migration — verbal LOI)
 - **Status:** Verbal LOI. Interested specifically IF agents don't fail silently or fake success during data migration.
