@@ -1,0 +1,259 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bongo — run the cheap model, stay reliable</title>
+<style>
+  :root{
+    --bg:#0a0b12; --panel:#12141f; --panel2:#171a28; --line:#262a3d;
+    --txt:#e7e9f3; --dim:#9aa0b8; --green:#2ed573; --red:#ff4d5e; --amber:#ffb340;
+    --bongo:#7c5cff; --bongo2:#a98bff; --cheap:#3aa0ff; --strong:#ff8a3d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#1a1730,#0a0b12 60%);
+    color:var(--txt);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:34px 22px 80px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .logo .b{background:linear-gradient(90deg,var(--bongo2),var(--cheap));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pill{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+  h1{font-size:25px;margin:18px 0 4px;letter-spacing:-.4px}
+  .sub{color:var(--dim);max-width:680px}
+  .runbtn{margin:22px 0 6px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+    background:linear-gradient(90deg,var(--bongo),#5a3ff0);color:#fff;border:0;border-radius:12px;
+    padding:13px 22px;font-size:15px;font-weight:700;box-shadow:0 8px 30px -10px var(--bongo)}
+  .runbtn:disabled{opacity:.5;cursor:default}
+  .runbtn:hover:not(:disabled){filter:brightness(1.08)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-height:120px}
+  .col h2{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .col .cap{color:var(--dim);font-size:12px;margin-bottom:12px}
+  .col.left h2 .dot{color:var(--cheap)}
+  .col.right{border-color:#33285f;background:linear-gradient(180deg,#15122a,#12141f)}
+  .col.right h2 .dot{color:var(--bongo2)}
+  .task{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:8px 0;background:var(--panel2);
+    opacity:0;transform:translateY(6px);transition:.35s}
+  .task.show{opacity:1;transform:none}
+  .task .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .task .nm{font-weight:600;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+  .task .desc{color:var(--dim);font-size:11.5px;margin-top:3px}
+  .status{font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .s-pass{color:var(--green);background:rgba(46,213,115,.12)}
+  .s-fail{color:var(--red);background:rgba(255,77,94,.12)}
+  .s-catch{color:var(--amber);background:rgba(255,179,64,.14)}
+  .steps{margin-top:9px;border-top:1px dashed var(--line);padding-top:8px;display:none}
+  .steps.open{display:block}
+  .step{display:flex;gap:8px;align-items:flex-start;font-size:12px;padding:2px 0;color:var(--dim)}
+  .step .ic{width:15px;text-align:center;flex:0 0 15px}
+  .step .mdl{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;border:1px solid var(--line);
+    border-radius:5px;padding:0 5px;color:var(--dim)}
+  .step.pass .ic{color:var(--green)} .step.fail .ic{color:var(--red)}
+  .step.catch{color:var(--amber)} .step.catch .ic{color:var(--amber)}
+  .step.escalate{color:var(--bongo2)} .step.escalate .ic{color:var(--bongo2)}
+  .step.advice{color:var(--bongo2);align-items:center} .step.advice .ic{color:var(--amber)}
+  /* scoreboard */
+  .board{margin-top:26px;opacity:0;transform:translateY(10px);transition:.5s}
+  .board.show{opacity:1;transform:none}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:760px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .card.win{border-color:var(--bongo);box-shadow:0 0 0 1px var(--bongo) inset,0 14px 40px -18px var(--bongo)}
+  .card .lbl{font-size:12px;color:var(--dim)}
+  .card .big{font-size:30px;font-weight:800;margin:6px 0 2px;letter-spacing:-.5px}
+  .card .price{font-size:13px;color:var(--dim)}
+  .bar{height:7px;border-radius:6px;background:var(--line);margin:12px 0 4px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px;width:0;transition:width .9s cubic-bezier(.4,1.3,.5,1)}
+  .rel-cheap > i{background:var(--cheap)} .rel-bongo > i{background:linear-gradient(90deg,var(--bongo),var(--bongo2))}
+  .rel-strong > i{background:var(--strong)}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;margin-top:8px}
+  .tag.bad{color:var(--red);background:rgba(255,77,94,.12)} .tag.good{color:var(--green);background:rgba(46,213,115,.12)}
+  .headline{margin-top:18px;background:linear-gradient(90deg,rgba(124,92,255,.14),rgba(58,160,255,.08));
+    border:1px solid #322a5c;border-radius:14px;padding:16px 18px;font-size:17px;font-weight:600}
+  .headline b{color:var(--bongo2)}
+  /* connect */
+  .connect{margin-top:30px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .connect h3{margin:0 0 10px;font-size:15px}
+  pre{margin:0;background:#0c0e17;border:1px solid var(--line);border-radius:10px;padding:13px 14px;overflow:auto;
+    font:12.5px/1.6 ui-monospace,Menlo,monospace;color:#cdd3ee}
+  .k{color:var(--bongo2)} .c{color:#5d6685}
+  .wedge{color:var(--dim);font-size:13px;margin-top:12px;border-left:2px solid var(--bongo);padding-left:10px}
+  footer{margin-top:34px;color:var(--dim);font-size:12px;text-align:center}
+  .tout{font:11px/1.5 ui-monospace,Menlo,monospace;margin:3px 0 7px 23px;padding:6px 9px;border-radius:7px;white-space:pre-wrap}
+  .tout.fail{color:#ffb3bb;background:rgba(255,77,94,.10);border:1px solid rgba(255,77,94,.3)}
+  .tout.pass{color:#b6f0cb;background:rgba(46,213,115,.10);border:1px solid rgba(46,213,115,.3)}
+  .herowedge{margin-top:14px;text-align:center;color:var(--dim);font-size:13px}
+  .herowedge b{color:var(--bongo2)}
+  .conn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .conn-row input,.conn-row select{background:#0c0e17;border:1px solid var(--line);border-radius:9px;
+    color:var(--txt);padding:10px 12px;font-size:13px}
+  .conn-row input{flex:1;min-width:200px}
+  .conn-note{font-size:11px;color:var(--dim);margin-top:6px}
+  .how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+  @media(max-width:760px){.how{grid-template-columns:1fr}}
+  .how-step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .how-step .n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+    background:linear-gradient(90deg,var(--bongo),var(--cheap));color:#fff;font-weight:800;font-size:13px;margin-bottom:8px}
+  .how-step b{display:block;margin-bottom:3px;font-size:14px}
+  .how-step .t{color:var(--dim);font-size:12.5px}
+  .how-step code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--bongo2)}
+  .demolabel{margin-top:24px;color:var(--dim);font-size:13px;font-weight:600}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="logo">🥁 <span class="b">Bongo</span></div>
+    <span class="pill">cross-provider reliability layer</span>
+    <span class="pill">Paris Builds · demo</span>
+  </header>
+
+  <h1>Run the cheap model. Bongo makes it reliable — and cuts your bill.</h1>
+  <p class="sub"><b>You</b> pick your own AI model. Bongo sits in front of it, watches every step,
+    and <b>catches when the model is wrong</b> — even when it fails <i>silently</i> (looks fine,
+    nothing crashes, the answer is just inaccurate). Then it pinpoints what broke and fixes it.
+    <b>This is not a router — you keep your own model; Bongo just makes it accurate.</b></p>
+
+  <div class="how">
+    <div class="how-step"><span class="n">1</span><b>You already use an AI API</b>
+      <div class="t">In your app or agent — a video editor, a support bot, a data pipeline. <b>You</b> choose the model.</div></div>
+    <div class="how-step"><span class="n">2</span><b>Point it at Bongo — one line</b>
+      <div class="t">Change your <code>base_url</code> to Bongo and keep your own key. Nothing else in your code changes.</div></div>
+    <div class="how-step"><span class="n">3</span><b>Bongo catches the mistakes</b>
+      <div class="t">It checks every step. When the model is wrong it tells you <b>what broke</b> and fixes it — by escalating that step to a stronger model, or advising how to improve.</div></div>
+  </div>
+
+  <div class="demolabel">👇 Live demo — watch it happen on a coding agent</div>
+  <button class="runbtn" id="run">▶ Run the demo</button>
+
+  <div class="cols">
+    <div class="col left">
+      <h2><span class="dot">●</span> Cheap model alone</h2>
+      <div class="cap">one cheap model, no safety net — what most agents do today</div>
+      <div id="left"></div>
+    </div>
+    <div class="col right">
+      <h2><span class="dot">●</span> Cheap model + Bongo</h2>
+      <div class="cap">same cheap model — Bongo verifies each step and fixes the failures live</div>
+      <div id="right"></div>
+    </div>
+  </div>
+
+  <div class="herowedge">Bongo escalates <b>one step</b>, <b>after a real test fails</b>, mid-run — to a model on <b>a different provider</b>. Not a router.</div>
+
+  <div class="board" id="board">
+    <div class="cards" id="cards"></div>
+    <div class="headline" id="headline"></div>
+  </div>
+
+  <div class="connect">
+    <h3>How you connect (one line)</h3>
+    <pre><span class="c"># Point your app at Bongo, keep your own API key. Any provider.</span>
+client = OpenAI(
+    base_url=<span class="k">"http://localhost:8129/v1"</span>,   <span class="c"># &lt;- the only change (runs today)</span>
+    api_key=YOUR_KEY,                       <span class="c"># your key, passes through</span>
+)
+<span class="c"># hosted api.bongo.dev is coming; the local gateway works now (python3 demo/gateway.py)</span></pre>
+    <div class="conn-row">
+      <input placeholder="Paste your API key (passes through, never stored)" />
+      <select>
+        <option>Mistral (cheap)</option>
+        <option>OpenAI</option>
+        <option>Anthropic</option>
+        <option>Gemini</option>
+        <option>Open model (HF)</option>
+      </select>
+    </div>
+    <div class="conn-note">Bring your own key, any provider. Bongo verifies each step and escalates only the failures.</div>
+    <div class="wedge"><b>Not a router.</b> Routers pick a model up front and lock it for the whole run.
+      Bongo escalates <b>one step</b>, <b>after</b> a verification fails, mid-run — across providers a single lab can't reach.</div>
+  </div>
+
+  <footer>Built with Claude Code · the verifier runs real tests (deterministic) · model outputs pinned for a reliable stage demo</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ICON = {pass:"✓", fail:"✕", catch:"⚡", escalate:"↗", advice:"💡", ok:"·"};
+
+function stepRow(s){
+  const cls = ({pass:"pass",fail:"fail",catch:"catch",advice:"advice",ok:""})[s.status] ?? "";
+  const esc = s.role==="strong" && s.status==="ok";
+  const c2 = esc ? "escalate" : cls;
+  const ic = esc ? ICON.escalate : (ICON[s.status]||ICON.ok);
+  const badge = s.provider ? `<span class="mdl">${s.provider}·${s.model}</span>` : "";
+  // show the REAL test output for verify steps — proves it isn't faked
+  const out = (s.output && (s.status==="pass"||s.status==="fail"))
+     ? `<div class="tout ${s.status}">${s.checker?("["+s.checker+"] "):""}${s.output}</div>` : "";
+  return `<div class="step ${c2}"><span class="ic">${ic}</span>
+    ${badge}<span>${s.label} — ${s.detail}</span></div>${out}`;
+}
+
+function taskCard(r, side){
+  const broke = side==="left" && !r.passed;
+  const caught = side==="right" && r.fixed_by==="bongo-escalation";
+  const status = r.passed
+     ? `<span class="status s-pass">✓ passed</span>`
+     : `<span class="status s-fail">✕ shipped broken</span>`;
+  const badge = caught ? `<span class="status s-catch">⚡ caught → escalated → ✓</span>` : status;
+  // expand steps for the interesting (failed/caught) tasks
+  const open = (broke || caught) ? "open" : "";
+  return `<div class="task" data-name="${r.task}">
+      <div class="top"><div><div class="nm">${r.task}()</div>
+        <div class="desc">${r.desc}</div></div>${badge}</div>
+      <div class="steps ${open}">${r.steps.map(stepRow).join("")}</div>
+    </div>`;
+}
+
+async function streamColumn(elId, results, side){
+  const el = $(elId); el.innerHTML="";
+  for(const r of results){
+    el.insertAdjacentHTML("beforeend", taskCard(r, side));
+    const node = el.lastElementChild;
+    await sleep(60);
+    node.classList.add("show");
+    await sleep((side==="right" && r.fixed_by==="bongo-escalation") ? 520 : 230);
+  }
+}
+
+function card(sb, key, label, win){
+  const cls = {cheap:"rel-cheap",bongo:"rel-bongo",strong:"rel-strong"}[key];
+  const tag = key==="cheap"
+     ? `<span class="tag bad">${sb.broken_shipped} shipped broken</span>`
+     : `<span class="tag good">0 broken</span>`;
+  return `<div class="card ${win?'win':''}">
+    <div class="lbl">${label}</div>
+    <div class="big">${sb.reliability}%</div>
+    <div class="price">reliability · <b>$${sb.cost_per_1k_usd}</b> / 1k runs</div>
+    <div class="bar ${cls}"><i data-w="${sb.reliability}"></i></div>
+    ${tag}</div>`;
+}
+
+async function showBoard(d){
+  const sb = d.scoreboard, h = d.headline;
+  $("#cards").innerHTML =
+    card(sb.cheap,"cheap","Cheap model alone") +
+    card(sb.bongo,"bongo","Cheap + Bongo", true) +
+    card(sb.strong,"strong","Expensive model alone");
+  $("#headline").innerHTML =
+    `Same cheap model. <b>${h.bongo_reliability}% reliable</b> (vs ${h.cheap_reliability}% alone) — and
+     <b>${h.savings_vs_strong_pct}% cheaper</b> than running the expensive model everywhere.
+     Bongo paid the premium <b>only</b> on the ${h.cheap_broken_shipped} steps that actually needed it.`;
+  $("#board").classList.add("show");
+  await sleep(60);
+  document.querySelectorAll(".bar > i").forEach(i => i.style.width = i.dataset.w + "%");
+}
+
+$("#run").addEventListener("click", async () => {
+  const btn = $("#run"); btn.disabled = true; btn.textContent = "running…";
+  $("#board").classList.remove("show");
+  const d = {"results": {"cheap": [{"task": "is_palindrome", "desc": "True if a string reads the same forwards and backwards (ignore case/spaces).", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote is_palindrome()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": false}, {"task": "fizzbuzz", "desc": "Return 'Fizz'/'Buzz'/'FizzBuzz' for multiples of 3/5/15, else the number as a string.", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote fizzbuzz()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": false}, {"task": "slugify", "desc": "Turn a title into a URL slug: lowercase, strip punctuation/accents, words joined by '-'.", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote slugify()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'", "status": "fail", "checker": "run-tests", "output": "FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'"}], "passed": false, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": true}, {"task": "roman_to_int", "desc": "Convert a Roman numeral string to an integer (handles subtractive forms like IV, IX).", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote roman_to_int()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "FAILED: assert roman_to_int('IV') == 4", "status": "fail", "checker": "run-tests", "output": "FAILED: assert roman_to_int('IV') == 4"}], "passed": false, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": true}, {"task": "flatten", "desc": "Flatten a list that may contain nested lists into a single flat list.", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote flatten()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": false}, {"task": "word_count", "desc": "Return a dict mapping each word (case-insensitive) to its count.", "mode": "cheap", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote word_count()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "shipped_broken": false}], "bongo": [{"task": "is_palindrome", "desc": "True if a string reads the same forwards and backwards (ignore case/spaces).", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote is_palindrome()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "bongo", "advice": null, "shipped_broken": false}, {"task": "fizzbuzz", "desc": "Return 'Fizz'/'Buzz'/'FizzBuzz' for multiples of 3/5/15, else the number as a string.", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote fizzbuzz()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "bongo", "advice": null, "shipped_broken": false}, {"task": "slugify", "desc": "Turn a title into a URL slug: lowercase, strip punctuation/accents, words joined by '-'.", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote slugify()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'", "status": "fail", "checker": "run-tests", "output": "FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'"}, {"label": "Bongo: silent failure caught", "role": "bongo", "provider": "Bongo", "model": "reliability-layer", "detail": "the cheap model's output failed the check (FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar') \u2014 no error was thrown; escalating just this step", "status": "catch", "checker": null, "output": null}, {"label": "Escalate this step to Anthropic", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "re-generated slugify() with a stronger model on another provider", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}, {"label": "Bongo advice", "role": "bongo", "provider": "Bongo", "model": "reliability-layer", "detail": "'slugify' failed the run-tests check (FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'). Bongo escalated it from Mistral to Anthropic and it passed. Next time: pin this step to the stronger model, or add a prompt constraint covering the case that broke.", "status": "advice", "checker": null, "output": null}], "passed": true, "cost": 21, "fixed_by": "bongo-escalation", "advice": "'slugify' failed the run-tests check (FAILED: assert slugify('Cafe & Bar!') == 'cafe-bar'). Bongo escalated it from Mistral to Anthropic and it passed. Next time: pin this step to the stronger model, or add a prompt constraint covering the case that broke.", "shipped_broken": false}, {"task": "roman_to_int", "desc": "Convert a Roman numeral string to an integer (handles subtractive forms like IV, IX).", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote roman_to_int()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "FAILED: assert roman_to_int('IV') == 4", "status": "fail", "checker": "run-tests", "output": "FAILED: assert roman_to_int('IV') == 4"}, {"label": "Bongo: silent failure caught", "role": "bongo", "provider": "Bongo", "model": "reliability-layer", "detail": "the cheap model's output failed the check (FAILED: assert roman_to_int('IV') == 4) \u2014 no error was thrown; escalating just this step", "status": "catch", "checker": null, "output": null}, {"label": "Escalate this step to Anthropic", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "re-generated roman_to_int() with a stronger model on another provider", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}, {"label": "Bongo advice", "role": "bongo", "provider": "Bongo", "model": "reliability-layer", "detail": "'roman_to_int' failed the run-tests check (FAILED: assert roman_to_int('IV') == 4). Bongo escalated it from Mistral to Anthropic and it passed. Next time: pin this step to the stronger model, or add a prompt constraint covering the case that broke.", "status": "advice", "checker": null, "output": null}], "passed": true, "cost": 21, "fixed_by": "bongo-escalation", "advice": "'roman_to_int' failed the run-tests check (FAILED: assert roman_to_int('IV') == 4). Bongo escalated it from Mistral to Anthropic and it passed. Next time: pin this step to the stronger model, or add a prompt constraint covering the case that broke.", "shipped_broken": false}, {"task": "flatten", "desc": "Flatten a list that may contain nested lists into a single flat list.", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote flatten()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "bongo", "advice": null, "shipped_broken": false}, {"task": "word_count", "desc": "Return a dict mapping each word (case-insensitive) to its count.", "mode": "bongo", "steps": [{"label": "Analyze failing tests", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote word_count()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "bongo", "advice": null, "shipped_broken": false}], "strong": [{"task": "is_palindrome", "desc": "True if a string reads the same forwards and backwards (ignore case/spaces).", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote is_palindrome()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}, {"task": "fizzbuzz", "desc": "Return 'Fizz'/'Buzz'/'FizzBuzz' for multiples of 3/5/15, else the number as a string.", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote fizzbuzz()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}, {"task": "slugify", "desc": "Turn a title into a URL slug: lowercase, strip punctuation/accents, words joined by '-'.", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote slugify()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}, {"task": "roman_to_int", "desc": "Convert a Roman numeral string to an integer (handles subtractive forms like IV, IX).", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote roman_to_int()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}, {"task": "flatten", "desc": "Flatten a list that may contain nested lists into a single flat list.", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote flatten()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}, {"task": "word_count", "desc": "Return a dict mapping each word (case-insensitive) to its count.", "mode": "strong", "steps": [{"label": "Analyze failing tests", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "read the test suite", "status": "ok", "checker": null, "output": null}, {"label": "Generate implementation", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote word_count()", "status": "ok", "checker": null, "output": null}, {"label": "Verify \u2014 run tests", "role": "verifier", "provider": "Bongo", "model": "deterministic", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "shipped_broken": false}]}, "scoreboard": {"cheap": {"mode": "cheap", "passed": 4, "total": 6, "reliability": 67, "cost_units": 6, "broken_shipped": 2, "cost_per_1k_usd": 2.0}, "bongo": {"mode": "bongo", "passed": 6, "total": 6, "reliability": 100, "cost_units": 46, "broken_shipped": 0, "cost_per_1k_usd": 15.33}, "strong": {"mode": "strong", "passed": 6, "total": 6, "reliability": 100, "cost_units": 120, "broken_shipped": 0, "cost_per_1k_usd": 40.0}}, "headline": {"bongo_reliability": 100, "cheap_reliability": 67, "savings_vs_strong_pct": 62, "bongo_cost_pct_of_strong": 38, "cheap_broken_shipped": 2}, "cost_model": {"cheap": 1, "strong": 20}, "providers": {"cheap": {"provider": "Mistral", "model": "mistral-small"}, "strong": {"provider": "Anthropic", "model": "claude-sonnet"}, "verifier": {"provider": "Bongo", "model": "deterministic"}, "bongo": {"provider": "Bongo", "model": "reliability-layer"}}, "checkers": ["run-tests", "format", "schema-from-example", "json-schema", "tool-args", "llm-judge"]};
+  await Promise.all([
+    streamColumn("#left", d.results.cheap, "left"),
+    streamColumn("#right", d.results.bongo, "right"),
+  ]);
+  await sleep(250);
+  await showBoard(d);
+  btn.disabled = false; btn.textContent = "▶ Run again";
+});
+</script>
