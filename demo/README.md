@@ -30,7 +30,7 @@ No dependencies (Python stdlib only). Works offline.
 | **Cheap + Plumbline** | **100%** | **78% cheaper** | **0** |
 | Expensive alone | 100% | most expensive | 0 |
 
-→ **100% reliable, 78% cheaper than the big model.** Cheap alone silently shipped 3 broken results (incl. a wrong wire).
+→ **100% reliable, 78% cheaper than the big model.** Cheap alone silently shipped 2 broken results (incl. a wrong wire).
 
 ## Next (see ../BUILD-PLAN.md)
 - [P1] real-API live mode (`BONGO_REAL=1`)

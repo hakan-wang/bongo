@@ -40,9 +40,9 @@ client = OpenAI(
 resp = client.chat.completions.create(
     model="mistral-small",
     messages=[{"role": "user", "content": "..."}],
-    extra_body={"bongo": {"checker": "format"}},
+    extra_body={"plumbline": {"checker": "format"}},
 )
-print(resp.bongo)   # what Plumbline caught / fixed / advised
+print(resp.plumbline)   # what Plumbline caught / fixed / advised
 ```
 
 **How does Plumbline know YOUR step is wrong if you have no unit tests?** You bring a check, or use

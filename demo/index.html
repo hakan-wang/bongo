@@ -169,7 +169,7 @@ async function stream(elId,rows,side){
 }
 function scard(sb,key,label,win){
   const cls={cheap:"rc",bongo:"rb",strong:"rs"}[key];
-  const tag=key==="cheap"?`<span class="tag bad">${sb.broken_shipped} shipped broken</span>`:`<span class="tag good">0 broken</span>`;
+  const tag=sb.broken_shipped>0?`<span class="tag bad">${sb.broken_shipped} shipped broken</span>`:`<span class="tag good">0 broken</span>`;
   return `<div class="card ${win?"win":""}"><div class="lbl">${label}</div><div class="big">${sb.reliability}%</div>
     <div class="price">reliability · <b>$${sb.cost_per_1k_usd}</b>/1k steps</div>
     <div class="bar ${cls}"><i data-w="${sb.reliability}"></i></div>${tag}</div>`;

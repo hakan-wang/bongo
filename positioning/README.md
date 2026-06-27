@@ -1,3 +1,5 @@
+> 🔒 **The LOCKED decision is in [`POSITIONING.md`](POSITIONING.md).** This file may contain earlier A/B framing — POSITIONING.md wins.
+
 # Positioning (decision in progress)
 
 Positioning determines the demo-video script, and round 1 is judged ONLY on the video. So this is THE decision. Verified data + council verdict below (being filled).

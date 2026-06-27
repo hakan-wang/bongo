@@ -20,7 +20,7 @@
 - **We are not a router. You keep your model; we verify it.**
 
 ## Slide 4 — The Product / How it works (Demo + Agentic Depth)
-- Trace each step → **catch against deterministic ground truth** (run the tests / arithmetic / schema — not another AI) → **pinpoint** the broken step → **recover**: retry-cheap-with-guidance → cross-provider escalate (Mistral → Anthropic) → Tripwire kill-switch.
+- Trace each step → **catch against deterministic ground truth** (run the tests / arithmetic / schema — not another AI) → **pinpoint** the broken step → **recover**: retry-cheap-with-guidance → cross-provider escalate (Mistral → Anthropic) → kill-switch kill-switch.
 - Honesty boundary: when it can't verify, it flags low-confidence — never auto-passes.
 - *(Embed the trace screenshot: red step → escalation badge → green.)*
 

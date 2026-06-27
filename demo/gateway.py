@@ -33,7 +33,7 @@ def _gen(provider, prompt, mock_text):
 
 
 def run_bongo(messages, checker, spec):
-    prompt = messages[-1].get("content", "") if messages else ""
+    prompt = messages[-1].get("content", "") if messages and isinstance(messages[-1], dict) else ""
     trace, cost = [], 0
 
     # 1) cheap model generates. In mock mode it returns a deliberately-thin output so the
@@ -53,7 +53,8 @@ def run_bongo(messages, checker, spec):
         ok2, detail2 = scenarios.verify(strong_out, spec, checker)
         trace.append({"step": "escalate", "provider": STRONG_PROVIDER, "role": "strong",
                       "checker": checker, "ok": ok2, "detail": detail2, "output": strong_out})
-        final, fixed_by = strong_out, "bongo-escalation"
+        final = strong_out
+        fixed_by = "plumbline-escalation" if ok2 else "unrecovered"
         advice = (f"The cheap model ({CHEAP_PROVIDER}) failed the '{checker}' check ({detail}). "
                   f"Plumbline escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
                   f"to the strong model or tighten the prompt.")
@@ -77,22 +78,30 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.path.startswith("/v1/chat/completions"):
             return self._send(404, {"error": "POST /v1/chat/completions"})
-        n = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(n) or b"{}")
-        bongo = body.get("bongo", {}) or {}
-        checker = bongo.get("checker", "format")        # zero-config default
-        spec = bongo.get("spec", [])                    # only some checkers use this
+        try:
+            n = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(n) or b"{}")
+            if not isinstance(body, dict):
+                raise ValueError("body must be a JSON object")
+        except Exception as e:
+            return self._send(400, {"error": f"invalid request JSON: {e}"})
+        opts = body.get("plumbline", {}) or {}
+        checker = opts.get("checker", "format")         # zero-config default
+        spec = opts.get("spec", [])                     # only some checkers use this
         model = body.get("model", "mistral-small")
-        r = run_bongo(body.get("messages", []), checker, spec)
-        # OpenAI-compatible shape + a `bongo` block with the reliability trace
+        msgs = body.get("messages", [])
+        if not isinstance(msgs, list):
+            return self._send(400, {"error": "messages must be a list"})
+        r = run_bongo(msgs, checker, spec)
+        # OpenAI-compatible shape + a `plumbline` block with the reliability trace
         self._send(200, {
-            "id": "bongo-gw", "object": "chat.completion", "model": model,
+            "id": "plumbline-gw", "object": "chat.completion", "model": model,
             "choices": [{"index": 0, "finish_reason": "stop",
                          "message": {"role": "assistant", "content": r["content"]}}],
-            "bongo": {"fixed_by": r["fixed_by"], "cost_units": r["cost"],
-                      "advice": r["advice"], "trace": r["trace"],
-                      "mode": "real" if REAL else "mock",
-                      "providers": {"cheap": CHEAP_PROVIDER, "strong": STRONG_PROVIDER}},
+            "plumbline": {"fixed_by": r["fixed_by"], "cost_units": r["cost"],
+                          "advice": r["advice"], "trace": r["trace"],
+                          "mode": "real" if REAL else "mock",
+                          "providers": {"cheap": CHEAP_PROVIDER, "strong": STRONG_PROVIDER}},
         })
 
 

@@ -39,7 +39,7 @@ the trade's real arithmetic, walks the recovery ladder, and ends correct. Then t
 
 | | reliability | cost | result |
 |---|---|---|---|
-| Cheap model alone | **60%** | cheapest | shipped 3 broken (incl. a wrong wire) |
+| Cheap model alone | **60%** | cheapest | shipped 2 broken (incl. a wrong wire) |
 | **Cheap + Plumbline** | **100%** | **78% cheaper than the big model** | 0 broken |
 | Expensive model alone | 100% | most expensive | right but overkill |
 

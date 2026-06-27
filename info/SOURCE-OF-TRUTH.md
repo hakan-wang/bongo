@@ -1,9 +1,12 @@
 # Plumbline — Source of Truth (canonical)
 
+> 🔒 **For the hackathon, the LOCKED pitch positioning is canonical in [`../positioning/POSITIONING.md`](../positioning/POSITIONING.md):**
+> Plumbline = *"Keep your model. We verify it against reality."* — finance-anchored video, Mistral→Anthropic escalation,
+> numbers **cheap 60% → 100%, 78% cheaper, escalated 2/5**. Some sections below reflect an earlier cost-first framing; positioning wins.
+
 > **This is the single canonical doc. If anything elsewhere conflicts with this, this wins.**
 > Primary source = **Håkan** (founder, most current context). Older docs that describe a
 > different/earlier idea are superseded — see "Document status" at the bottom.
-> Working name "Plumbline" is a placeholder; we'll pick a real name later.
 > _Living doc — updated as Håkan adds clarity. Last merged from: Håkan's direction +
 > Michelle's build + team docs + ongoing research._
 

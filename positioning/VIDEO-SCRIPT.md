@@ -7,7 +7,7 @@
 ### BEAT 0 — Cold open: the silent disaster (0:00–0:12)
 - **On-screen:** A finance agent UI. A cheap model reads a trade ticket, extracts numbers, emits `settle_trade(amount=$12,400,000, ccy=USD, account=…)`. Green "200 OK — submitted." Everything looks clean and confident.
 - **VO:** "This agent just read a trade ticket on a cheap model and queued a wire. Notional should've been one-point-two-four million. It typed twelve-point-four. Off by 10x. Nothing errored."
-- **Cut to:** the planted ground-truth value flashing next to the wrong one. Counter: **"COST OF SHIPPING THIS BUG: $11.2M."**
+- **Cut to:** the planted ground-truth value flashing next to the wrong one. Counter: **"COST OF SHIPPING THIS BUG: $8.87M."**
 
 ### BEAT 1 — Name the trap (0:12–0:40)
 - **On-screen:** split — "Cheap model: silently wrong, no error" vs "Frontier-on-every-step: 20x the bill."
@@ -33,7 +33,7 @@
   - **VO:** "And when we can't vouch for a step, we say so. We never rubber-stamp."
 
 ### BEAT 5 — Receipts (3:25–4:15)
-- **On-screen:** scoreboard. Cheap-alone **60%** correct. Plumbline **100%**. Escalation counter: **"47 steps stayed cheap, 3 escalated."** Cost: **78% cheaper than frontier-on-every-step.**
+- **On-screen:** scoreboard. Cheap-alone **60%** correct. Plumbline **100%**. Escalation counter: **"47 steps stayed cheap, 2 escalated."** Cost: **78% cheaper than frontier-on-every-step.**
 - **VO:** "Cheap model alone: sixty-seven percent correct — and you'd never know which third was wrong. With Plumbline: a hundred percent, because reality checked every step. Forty-seven steps stayed cheap; we only paid for the strong model on the three that needed it. Sixty-two percent cheaper than running frontier everywhere — but cost was never the point. Correctness was."
 
 ### BEAT 6 — Drop-in + close (4:15–4:55)

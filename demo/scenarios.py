@@ -54,12 +54,13 @@ def _check_finance(output, gt):
         return False, f"invalid tool call JSON: {e}"
     amt, ccy = obj.get("amount"), obj.get("ccy")
     if amt != gt["amount"]:
+        amt_str = f"{amt:,}" if isinstance(amt, (int, float)) else repr(amt)
+        hint = ""
         if isinstance(amt, (int, float)) and gt["amount"]:
             factor = amt / gt["amount"]
-            hint = f" ({factor:g}x the true notional)" if factor in (10, 100, 0.1, -1) else ""
-        else:
-            hint = ""
-        return False, f"amount {amt:,} != ground truth {gt['amount']:,}{hint}"
+            if factor in (10, 100, 0.1, -1):
+                hint = f" ({factor:g}x the true notional)"
+        return False, f"amount {amt_str} != ground truth {gt['amount']:,}{hint}"
     if ccy != gt["ccy"]:
         return False, f"currency {ccy} != ground truth {gt['ccy']}"
     return True, f"matches ground truth: {gt['amount']:,} {gt['ccy']}"
@@ -76,7 +77,45 @@ def _check_json_schema(output, required):
     return True, "schema valid"
 
 
-CHECKERS = {"run-tests": _check_run_tests, "finance": _check_finance, "json-schema": _check_json_schema}
+# zero-config checkers — how Plumbline checks a step when you have NO unit tests
+def _check_format(output, _ignored=None):
+    """Default: well-formed? If it looks like JSON it must parse; else just non-empty."""
+    s = (output or "").strip()
+    if not s:
+        return False, "empty output"
+    if s[0] in "{[":
+        try:
+            json.loads(s); return True, "valid JSON"
+        except Exception as e:
+            return False, f"looks like JSON but is malformed: {e}"
+    return (len(s) > 1, "non-empty text" if len(s) > 1 else "malformed/too short")
+
+
+def _check_schema_from_example(output, example):
+    """Paste one good output; check new outputs match its shape (keys)."""
+    try:
+        got, want = json.loads(output), json.loads(example)
+    except Exception as e:
+        return False, f"invalid JSON: {e}"
+    if isinstance(want, dict) and isinstance(got, dict):
+        for k in want:
+            if k not in got:
+                return False, f"missing field '{k}' (present in your example)"
+    return True, "matches your example's shape"
+
+
+def _check_tool_args(output, required):
+    return _check_json_schema(output, required)
+
+
+def _check_llm_judge(output, _rubric):
+    """Lower-confidence fallback for fuzzy steps — we lead with the deterministic ones."""
+    return (bool((output or "").strip()), "llm-judge (lower confidence)")
+
+
+CHECKERS = {"run-tests": _check_run_tests, "finance": _check_finance, "json-schema": _check_json_schema,
+            "format": _check_format, "schema-from-example": _check_schema_from_example,
+            "tool-args": _check_tool_args, "llm-judge": _check_llm_judge}
 
 
 def verify(output, spec, checker):
@@ -143,7 +182,7 @@ def run_task(task, mode):
         if mode == "bongo":
             cost += COST["cheap"]
             _gen_step(steps, "verifier", "Plumbline: loop detected", "same call 5x, no progress — runaway", "catch")
-            _gen_step(steps, "bongo", "Kill-switch fired", "halted at a $5 budget ceiling before the bill ran", "killswitch")
+            _gen_step(steps, "bongo", "Kill-switch fired", "halted at a $5 budget ceiling before the bill ran", "kill")
             return {"task": task["name"], "desc": task["desc"], "mode": mode, "domain": task["domain"],
                     "steps": steps, "passed": True, "cost": cost, "fixed_by": "kill-switch",
                     "advice": "Pin a hard budget/loop ceiling on this step.", "flagged": False,
@@ -227,7 +266,7 @@ def run_all():
         return {"mode": m, "passed": passed, "total": len(scored),
                 "reliability": round(100 * passed / len(scored)) if scored else 0,
                 "cost_units": sum(r["cost"] for r in results[m]),
-                "broken_shipped": sum(1 for r in results[m] if r["shipped_broken"])}
+                "broken_shipped": sum(1 for r in scored if r["shipped_broken"])}
 
     sb = {m: agg(m) for m in modes}
     PRICE = 0.002

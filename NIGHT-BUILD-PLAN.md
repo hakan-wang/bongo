@@ -23,7 +23,7 @@
 ### 3. Make the recovery LADDER visible on screen [~75 min] [Agentic Depth: 8→13]
 - [ ] 3.1 **Rung 1 — retry-cheap-with-guidance**: feed verifier's failure reason back to cheap model BEFORE spending frontier money (surface this step in the trace)
 - [ ] 3.2 **Rung 2 — cross-provider escalate** only if retry still fails (Mistral → Anthropic)
-- [ ] 3.3 **Rung 3 — Tripwire kill-switch**: fire on a deliberately runaway/looping step (budget/loop halt)
+- [ ] 3.3 **Rung 3 — kill-switch kill-switch**: fire on a deliberately runaway/looping step (budget/loop halt)
 - [ ] 3.4 Show ALL THREE outcomes in one run on the dashboard
 - [ ] 3.5 VERIFY: each rung renders a distinct badge/state in `index.html`
 
@@ -40,7 +40,7 @@
 ### 6. On-screen overlays [~40 min]
 - [ ] 6.1 "COST OF SHIPPING THIS BUG: $X" counter on the finance catch
 - [ ] 6.2 Live escalation-rate counter ("2 of 5 escalated") — pre-empts #1 objection
-- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 67% → Plumbline 100%, 78% cheaper — as RECEIPTS at the end only
+- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 60% → Plumbline 100%, 78% cheaper — as RECEIPTS at the end only
 
 ### 7. Record + cut the video [~90 min] [GATEKEEPER]
 - [ ] 7.1 Single-take finance catch, cold-open in first 10s (no logo intro)

@@ -44,7 +44,7 @@ Use FrugalGPT cascade + generator-verifier asymmetry + verifier-based best-of-N 
 
 ## Objection rebuttals
 - **"Isn't this just a router / FrugalGPT?"** — Routers *replace* your model with a guess. We *keep* your model and verify it against reality, escalating only the steps that actually fail. Cascade is our mechanism; verification is our product.
-- **"Doesn't this just become the expensive model?"** — No. Live escalation counter: "47 steps stayed cheap, 3 escalated." We retry-cheap-with-guidance *first*, escalate only on repeat failure.
+- **"Doesn't this just become the expensive model?"** — No. Live escalation counter: "47 steps stayed cheap, 2 escalated." We retry-cheap-with-guidance *first*, escalate only on repeat failure.
 - **"Isn't the checker just another LLM judging an LLM?"** — No. We run the actual unit tests / arithmetic equality / schema validation. Watch the pytest go red then green. (Blind self-correction AUROC 0.54–0.65; deterministic check = 1.0.)
 - **"Won't Anthropic just build this?"** — They will never escalate your failed step to a competitor's model, and they verify on benchmarks, not on your live task. The moat is structural, not a feature gap.
 - **"What if you can't verify a step?"** — We say so. The honesty-boundary case (open-ended step, no ground truth) is flagged **low-confidence, NOT auto-passed.** Knowing *when* we can vouch is the defensibility.
@@ -57,4 +57,4 @@ Use FrugalGPT cascade + generator-verifier asymmetry + verifier-based best-of-N 
 - "router" (except to say what we are NOT)
 
 ## The name
-**Plumbline** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Plumbline caught it"), scales beyond coding. Domain plan: `getverity.ai` / `tryverity.com`. Fallback **Plumbline** if clearance is crowded — the best metaphor in the set (a physical, deterministic check against true reality via gravity).
+**Plumbline** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Plumbline caught it"), scales beyond coding. Domain plan: check `plumbline.dev` / `getplumbline.com` / `plumbline.ai` (Haonan, TEAM-WORKLOADS Task 4). Chosen over "Verity" to avoid collision with Verity AG (robotics) and finance/wealth firms.

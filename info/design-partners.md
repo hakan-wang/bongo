@@ -3,11 +3,14 @@
 Running list of people who've committed interest. Show this to judges as traction.
 Keep it honest: "LOI / verbal commit / pipeline," not "collected revenue."
 
-## Traction summary (for the pitch)
-- Multiple signed LOIs in our first days.
-- Notable: **Skeptiva** (≈$50M-backed) [confirm exact name/figure], plus [PLACEHOLDER LOI 2], [PLACEHOLDER LOI 3], and several CEOs.
-- **Combined ≈ $10k MRR in signed LOIs** (intent-to-pay pipeline, not yet collected). Honest phrasing on stage: "signed LOIs representing about $10k in monthly recurring pipeline."
-- TODO: confirm each company's exact name, the backing figure, and per-LOI committed amount before quoting numbers publicly.
+## Traction summary (for the pitch — ONLY say what's confirmed)
+- **2 design partners committed in our first days:**
+  - **Julio Anthony Leonard** — verbal LOI, data migration (on-prem→BigQuery), a deterministically-checkable use case (details below).
+  - **Arjun** — LOI drafted / out for signature, early design partner.
+- Honest stage phrasing: *"two design partners — one verbal LOI, one LOI out for signature — both structured as paid pilots."* Say "commitments / intent-to-pay," never "revenue."
+- The **first-$10K plan** lives on the GTM slide as a forward plan, not current revenue.
+
+> ⚠️ **UNCONFIRMED — do NOT quote until verified (Haonan, TEAM-WORKLOADS Task 3):** any additional "$50M-backed" prospect or aggregate "$10k MRR pipeline" figure. If unverified by submission, omit.
 
 ## 1. Julio Anthony Leonard  (data migration — verbal LOI)
 - **Status:** Verbal LOI. Interested specifically IF agents don't fail silently or fake success during data migration.
