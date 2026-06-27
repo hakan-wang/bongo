@@ -53,7 +53,7 @@ Use FrugalGPT cascade + generator-verifier asymmetry + verifier-based best-of-N 
 - "reliability layer" / "observability" / "LLMOps" / "eval" in the **first 20 seconds**
 - "we proxy across providers" / "we connected two databases"
 - "swarm" / "ensemble" / "mixture-of-agents" / "provably beat" (anywhere a non-technical viewer can hear it)
-- "cut your AI bill" / "save tokens" as a **headline** (cost is closing receipts only: ~62% cheaper, 67% → 100%)
+- "cut your AI bill" / "save tokens" as a **headline** (cost is closing receipts only: 78% cheaper, 60% → 100%)
 - "router" (except to say what we are NOT)
 
 ## The name

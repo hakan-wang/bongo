@@ -33,7 +33,7 @@
   - **VO:** "And when we can't vouch for a step, we say so. We never rubber-stamp."
 
 ### BEAT 5 — Receipts (3:25–4:15)
-- **On-screen:** scoreboard. Cheap-alone **67%** correct. Plumbline **100%**. Escalation counter: **"47 steps stayed cheap, 3 escalated."** Cost: **~62% cheaper than frontier-on-every-step.**
+- **On-screen:** scoreboard. Cheap-alone **60%** correct. Plumbline **100%**. Escalation counter: **"47 steps stayed cheap, 3 escalated."** Cost: **78% cheaper than frontier-on-every-step.**
 - **VO:** "Cheap model alone: sixty-seven percent correct — and you'd never know which third was wrong. With Plumbline: a hundred percent, because reality checked every step. Forty-seven steps stayed cheap; we only paid for the strong model on the three that needed it. Sixty-two percent cheaper than running frontier everywhere — but cost was never the point. Correctness was."
 
 ### BEAT 6 — Drop-in + close (4:15–4:55)
