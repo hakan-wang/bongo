@@ -2,6 +2,8 @@
 
 **Catch the silently-wrong step — against reality, not another AI's opinion.**
 
+**▶ Live demo (no install, runs in your browser): https://assay-demo.vercel.app**
+
 Your agent's cheap model can confidently produce a wrong number — a 10× notional, a flipped
 sign, the wrong currency — and **nothing errors**. It returns HTTP 200 and the bad value flows
 straight into a wire, a trade, a database. Assay sits in your agent's loop, **checks every

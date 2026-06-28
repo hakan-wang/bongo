@@ -24,7 +24,7 @@ A judge will clone the repo fresh. Make sure it runs from nothing.
 1. In Terminal: `cd /tmp && rm -rf assay-test && git clone https://github.com/hakan-wang/bongo.git assay-test && cd assay-test`
    → you should see it clone with no error.
 2. `python3 demo/scenarios.py`
-   → you should see the scoreboard: **Cheap 60% → Assay 100%, 78% cheaper**, and lines about the kill-switch + low-confidence flag.
+   → you should see the scoreboard: **Cheap 60% → Assay 100%, 74% cheaper**, and lines about the kill-switch + low-confidence flag.
 3. `python3 demo/server.py` then open http://localhost:8200 and click **Run the agent**.
    → left column ends with a red "wired the wrong amount"; right column catches it, escalates, ends green; a scoreboard appears.
 4. If ANY step errors, copy the exact error and ping Håkan immediately. **This is the most important task — do it first.**
