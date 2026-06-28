@@ -1,7 +1,7 @@
-// Plumbline live demo — REAL model calls + REAL ground-truth checks. No mock data.
+// Assay live demo — REAL model calls + REAL ground-truth checks. No mock data.
 // HERO (/) = the Miru use case: AI finds UGC creators; cheap model invents fakes to fill the
-// request; Plumbline catches them against the verified creator database and returns only real ones.
-// /trivia = the simple version (cheap model gets trick questions wrong, Plumbline catches+fixes).
+// request; Assay catches them against the verified creator database and returns only real ones.
+// /trivia = the simple version (cheap model gets trick questions wrong, Assay catches+fixes).
 // Needs a server-side secret: MISTRAL_API_KEY  (set: wrangler secret put MISTRAL_API_KEY)
 
 const CHEAP = "mistral-small-latest";
@@ -73,7 +73,7 @@ async function handleFind(env, briefId) {
     final = cheapPicks;
     fixedNote = "Cheap model's picks all checked out.";
   } else {
-    // 2) Plumbline caught fakes -> escalate to STRONG model with a strict instruction
+    // 2) Assay caught fakes -> escalate to STRONG model with a strict instruction
     const strongPrompt =
       "Creator database (the ONLY valid creators): " + dbText +
       ".\nBrief: " + brief.label +
@@ -84,7 +84,7 @@ async function handleFind(env, briefId) {
     // dedupe
     const seen = new Set(); final = [];
     for (const p of strongPicks) { if (!seen.has(norm(p.handle))) { seen.add(norm(p.handle)); final.push(p); } }
-    fixedNote = "Plumbline caught " + fakes.length + " invented creator" + (fakes.length > 1 ? "s" : "") +
+    fixedNote = "Assay caught " + fakes.length + " invented creator" + (fakes.length > 1 ? "s" : "") +
       " and returned only the " + final.length + " real, on-niche matches.";
   }
 
@@ -103,7 +103,7 @@ export default {
 };
 
 const PAGE = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Plumbline × Miru — live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Assay × Miru — live</title>
 <style>
 :root{--bg:#06080a;--panel:#0d0f15;--line:#1b1f2b;--text:#eaf1f6;--muted:#7b8a98;--green:#22e3a0;--red:#ff5d6c;--amber:#ffc861;--sans:-apple-system,"SF Pro Display",system-ui,sans-serif;--mono:"SF Mono",ui-monospace,Menlo,monospace}
 *{margin:0;padding:0;box-sizing:border-box}body{background:radial-gradient(1000px 500px at 50% -10%,#10161f,var(--bg));color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;justify-content:center;padding:40px 20px}
@@ -129,9 +129,9 @@ select{background:var(--panel);color:var(--text);border:1px solid var(--line);bo
 .err{color:var(--red);font-family:var(--mono);font-size:13px;margin-top:14px}
 .foot{margin-top:20px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 </style></head><body><div class="wrap">
-<div class="eyebrow"><span class="dot"></span> Plumbline × Miru · live · real model calls</div>
-<h1>The AI invented creators. Plumbline caught them.</h1>
-<div class="sub">A brand asks Miru's AI to find UGC creators. The cheap model makes some up to fill the brief. Plumbline checks every pick against the verified creator database and hands back only the real ones.</div>
+<div class="eyebrow"><span class="dot"></span> Assay × Miru · live · real model calls</div>
+<h1>The AI invented creators. Assay caught them.</h1>
+<div class="sub">A brand asks Miru's AI to find UGC creators. The cheap model makes some up to fill the brief. Assay checks every pick against the verified creator database and hands back only the real ones.</div>
 <select id="brief"></select>
 <button class="run" id="run">▶ Find creators (live)</button>
 <div id="cheapcol"></div>
@@ -154,7 +154,7 @@ $("#run").addEventListener("click",async()=>{
     $("#cheapcol").appendChild(el);await new Promise(r=>setTimeout(r,250));requestAnimationFrame(()=>el.classList.add("show"));
   }
   await new Promise(r=>setTimeout(r,400));
-  $("#finalcol").innerHTML='<div class="h">✓ Plumbline-verified, sent to the brand</div>';
+  $("#finalcol").innerHTML='<div class="h">✓ Assay-verified, sent to the brand</div>';
   for(const c of d.final){
     const el=document.createElement("div");el.className="card good";
     el.innerHTML='<span>'+c.handle+'</span><span class="reason">'+c.reason+'</span><span class="badge b-good">verified</span>';
