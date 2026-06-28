@@ -59,5 +59,3 @@ confidence — we lead with the deterministic ones).
 - `demo/gateway.py` is a working **mock** of the connect path; flip `ASSAY_REAL=1` + keys to
   make the calls real. Pointing it at an arbitrary production workflow end-to-end is the next
   milestone, not done yet.
-- `localhost:8129` shown in some screens is **aspirational** — the real local endpoint is
-  `http://localhost:8129/v1`.

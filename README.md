@@ -81,7 +81,6 @@ client = OpenAI(base_url="http://localhost:8129/v1", api_key=YOUR_KEY)  # the on
 See **[`QUICKSTART.md`](QUICKSTART.md)**.
 
 ## Repo map
-- **[`positioning/`](positioning/)** — `POSITIONING.md`, the **`VIDEO-SCRIPT.md`** (≤5 min), `PITCH-DECK.md`.
 - `reliability.py`, `proxy.py` — the original reliability loop + cost/caching proxy.
 
 ## Honest status

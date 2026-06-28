@@ -22,3 +22,6 @@ node_modules/
 
 # Cloudflare Wrangler (local cache — contains account id, must not be public)
 .wrangler/
+
+# AI tooling artifacts
+.claude-flow/
