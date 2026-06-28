@@ -1,96 +1,124 @@
 # Assay
 
-**Catch the silently-wrong step — against reality, not another AI's opinion.**
+Assay is a hackathon MVP for AI workflow reliability and cost control.
 
-**▶ Live demo (no install, runs in your browser): https://assay-demo.vercel.app**
+It shows a simple idea: let a cheap model handle a multi-step workflow by default, verify each step deterministically where possible, and escalate only the failed step to a stronger model. In the current demo, that produces the same final correctness as the strong model path while staying 74% cheaper than running the strong model on every step.
 
-Your agent's cheap model can confidently produce a wrong number — a 10× notional, a flipped
-sign, the wrong currency — and **nothing errors**. It returns HTTP 200 and the bad value flows
-straight into a wire, a trade, a database. Assay sits in your agent's loop, **checks every
-step against reality** (it runs the test; it does the arithmetic), **catches the silently-wrong
-step**, pinpoints it, and **fixes only that step** with a recovery ladder:
+Live demo: [assay-demo.vercel.app](https://assay-demo.vercel.app)
 
-1. **Retry** the cheap model with the failure reason (cheapest fix)
-2. **Escalate** only that step to a stronger model **on a different provider**
-3. **Kill-switch** a runaway/looping step before it burns budget
-4. When a step has **no ground truth**, Assay is honest — it **flags it low-confidence**, it does not fake a green.
+## What the product does
 
-You keep your model. You keep your price. You stop shipping wrong answers.
+Assay sits inside a multi-step AI workflow and answers one question at every step:
 
-> **Not a router.** Routers (OpenRouter, etc.) pick a model *for* you and lock it. Assay keeps
-> the model **you** chose and verifies it, per step, in the loop. The moat: **deterministic
-> ground-truth verification + per-step pinpoint + cross-provider escalation** — the one thing a
-> single model lab structurally won't ship (Anthropic will never escalate your failed step to Mistral).
+`Did the model produce the correct output according to reality, not according to another model?`
 
-## Why not X?
+If the answer is yes, the workflow continues on the cheap path.
 
-|  | cross-provider | runtime / in-loop | per-step correctness | active fix |
-|---|:---:|:---:|:---:|:---:|
-| Routers — OpenRouter, Vercel AI Gateway | ✓ | ✕ | ✕ | ✕ — pick a model up front; retry only on hard errors, never a wrong-but-200 answer |
-| Observability — Datadog, Arize | ✓ | tells you *after* | ✓ | ✕ — reports the failure, doesn't fix it |
-| Guardrails — Portkey | ✕ | ✓ | ✓ | ✕ — verifies but won't regenerate |
-| Eval — Raindrop, Galileo | ✓ | offline | ✓ | ✕ — fixes offline / canned override |
-| **Assay** | **✓** | **✓** | **✓** | **✓ — catches the wrong step and fixes only it, live, across providers** |
+If the answer is no, Assay:
 
-The loop is copyable in a month; the **cross-provider per-(model × task) reliability data that compounds with traffic** is not. (More: [`info/competitors-and-differentiation.md`](info/competitors-and-differentiation.md).)
+1. catches the exact failed step
+2. retries or escalates only that step
+3. leaves the rest of the workflow on the cheap model
+4. reports the reliability and cost impact
 
-**Track:** Software for Agents · **Paris Builds** (Unaite × Y Combinator).
+This is intentionally not a generic observability tool and not a model router. The core wedge is step-level verification plus selective escalation.
 
----
+## Demo summary
 
-## Run it (30 seconds, no keys, offline)
+The demo is a support-workflow-style interface backed by a deterministic Python engine.
 
-Requires only Python 3 (standard library — no `pip install`).
+Under the hood, the engine simulates three paths:
+
+- cheap model only
+- cheap model plus Assay verification
+- strong model on every step
+
+The current benchmark output is:
+
+| Path | Reliability | Cost per 1,000 runs | Broken results shipped |
+|---|---:|---:|---:|
+| Cheap model only | 60% | $4.00 | 2 |
+| Cheap + Assay | 100% | $20.40 | 0 |
+| Strong model only | 100% | $80.00 | 0 |
+
+That is where the `74% cheaper than always using Opus 4.8` style story comes from: the verified cheap path reaches the same final reliability as the strong path without paying strong-model cost on every step.
+
+## What is real vs mocked
+
+This repo is honest about what is deterministic and what is staged for the demo.
+
+- Real: the verification logic in [`demo/scenarios.py`](demo/scenarios.py) actually recomputes arithmetic, executes tests, checks schemas, detects loops, and flags unverifiable steps.
+- Real: the scoreboard numbers are computed from the workflow runs.
+- Mocked or pinned: the specific model outputs are fixed so the demo behaves deterministically on stage.
+- Optional real-provider proof: [`demo/real_proof.py`](demo/real_proof.py) is the path for a genuine cross-provider escalation run when API keys are available.
+
+## Repo structure
+
+- [`demo/`](demo) contains the main hackathon demo
+- [`demo/index.html`](demo/index.html) is the UI shown in the browser
+- [`demo/server.py`](demo/server.py) serves the UI and `/api/run`
+- [`demo/scenarios.py`](demo/scenarios.py) contains the workflow engine, verifiers, and scoreboard
+- [`demo/gateway.py`](demo/gateway.py) is the mocked product-style gateway integration path
+- [`QUICKSTART.md`](QUICKSTART.md) contains fast local run instructions
+
+The rest of the root-level markdown files are planning, positioning, and hackathon support material.
+
+## How to run locally
+
+### 1. Run the demo UI
 
 ```bash
-python3 demo/server.py
-# open http://localhost:8200  and click "Run the agent"
+py -3 demo/server.py
 ```
 
-A cheap agent runs 7 steps. The **left** (no safety net) silently wires the wrong amount and
-ships broken work. The **right** (same cheap model + Assay) catches the wrong number against
-the trade's real arithmetic, walks the recovery ladder, and ends correct. Then the scoreboard:
+Then open `http://127.0.0.1:8200/`.
 
-| | reliability | cost | result |
-|---|---|---|---|
-| Cheap model alone | **60%** | cheapest | shipped 2 broken (incl. a wrong wire) |
-| **Cheap + Assay** | **100%** | **74% cheaper than the big model** | 0 broken |
-| Expensive model alone | 100% | most expensive | right but overkill |
+### 2. Print the benchmark numbers directly
 
-Assay paid the frontier premium on **only 2 of 5** steps. Print the numbers yourself:
 ```bash
-python3 demo/scenarios.py
+py -3 demo/scenarios.py
 ```
 
-## How it works
+### 3. Try the gateway path
 
-- **`demo/scenarios.py`** — the engine. Real deterministic checkers (`run-tests` executes code +
-  unit tests; `finance` **recomputes** the notional from the source figures, `units × price`; `json-schema`), the
-  catch → recovery-ladder loop, the kill-switch, the honest low-confidence flag, and the scoreboard.
-  Model outputs are **pinned** so the demo is reproducible; **the verification is real** (we say so out loud).
-- **`demo/server.py` + `demo/index.html`** — the dashboard you see (vanilla HTML/CSS/JS, no deps).
-- **`demo/gateway.py`** — the wired *"point your `base_url` at Assay"* path: an OpenAI-compatible
-  endpoint that verifies each step and escalates failures cross-provider. Mock by default; set
-  `ASSAY_REAL=1` + keys for real calls.
-- **`demo/real_proof.py`** — one genuinely-real Mistral→Anthropic escalation (needs keys; `--mock` to dry-run).
-
-## Connect your own agent (one line, keep your key)
-```python
-client = OpenAI(base_url="http://localhost:8129/v1", api_key=YOUR_KEY)  # the only change
+```bash
+py -3 demo/gateway.py
 ```
-See **[`QUICKSTART.md`](QUICKSTART.md)**.
 
-## Repo map
-- **[`positioning/`](positioning/)** — `POSITIONING.md`, the **`VIDEO-SCRIPT.md`** (≤5 min), `PITCH-DECK.md`.
-- **[`NIGHT-BUILD-PLAN.md`](NIGHT-BUILD-PLAN.md)** — the build checklist + scope.
-- **[`info/`](info/)** — strategy, judges, competitors, technical playbook (start at `info/SOURCE-OF-TRUTH.md`).
-- **[`TEAM-BUILD-PLAN.md`](TEAM-BUILD-PLAN.md)** — work split (Filip's tasks).
-- `reliability.py`, `proxy.py` — the original reliability loop + cost/caching proxy.
+## Tech stack
 
-## Honest status
-The on-stage demo's model outputs are **pinned** (deterministic → it always fires); the
-**verification is real**. `demo/real_proof.py` is the un-pinned, genuinely-real cross-provider
-proof. Pointing Assay at an arbitrary production workflow end-to-end is the next milestone.
+- Python 3
+- Standard library HTTP server for the local demo
+- Vanilla HTML, CSS, and JavaScript for the UI
+- Optional provider integrations for future real-model execution
+
+The main demo does not require external dependencies or API keys.
+
+## Why this matters
+
+Most teams either:
+
+- run a strong model everywhere and overpay, or
+- run a cheap model everywhere and silently accept wrong intermediate steps
+
+Assay demonstrates a third path:
+
+- keep most of the workflow cheap
+- verify each step against reality when possible
+- escalate only the broken step
+- measure the savings clearly
+
+That gives a sharper product wedge than generic token tracking or generic AI observability.
+
+## Submission notes
+
+This repository is public and contains the full codebase for the current hackathon MVP, including:
+
+- the working demo UI
+- the deterministic verification engine
+- the mock gateway path
+- the supporting positioning and build documents used during the project
 
 ## License
-MIT — see [LICENSE](LICENSE).
+
+MIT. See [`LICENSE`](LICENSE).
