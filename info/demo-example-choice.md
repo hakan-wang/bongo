@@ -1,4 +1,4 @@
-# Plumbline — Demo Example Choice
+# Assay — Demo Example Choice
 
 > **Purpose:** Pick the ONE workflow we demo on stage. This replaces **Brolly** (Håkan's
 > video editor) as the *public* example. Brolly stays as an internal story, but it is not
@@ -37,9 +37,9 @@ We score candidates on four axes, in priority order:
 
 | Axis | What it means | Why it matters |
 |------|---------------|----------------|
-| **Cheap verifiability** | Can Plumbline tell a step is wrong *deterministically, without knowing the answer in advance*? | This is the whole technical bet (`SOURCE-OF-TRUTH.md` §6). If the check needs an LLM judge, the demo's credibility breaks. Non-negotiable. |
+| **Cheap verifiability** | Can Assay tell a step is wrong *deterministically, without knowing the answer in advance*? | This is the whole technical bet (`SOURCE-OF-TRUTH.md` §6). If the check needs an LLM judge, the demo's credibility breaks. Non-negotiable. |
 | **Resonance** | Does the room understand it in one sentence, and is it a workflow the judge companies actually run? | A YC GP + Datadog/Mistral/Genesis/QRT engineers must instantly see themselves in it. |
-| **Wow** | Does the cheap model *visibly* fail, and does Plumbline *visibly* catch and fix it live, with a real cost gap? | The stage moment is "watch it break, watch Plumbline save it." |
+| **Wow** | Does the cheap model *visibly* fail, and does Assay *visibly* catch and fix it live, with a real cost gap? | The stage moment is "watch it break, watch Assay save it." |
 | **Breadth** | Does it imply "this works for any agent," not "this works for one toy task"? | We're selling a horizontal layer, not a point solution. |
 
 The key tension the criteria resolve: **the most resonant examples (broad agents) are the
@@ -70,7 +70,7 @@ is exactly the "code agent" sweet spot the team already leans toward.
 - **It's the judges' own world.** Software-for-Agents track; the room is engineers. Code
   agents are the single most-deployed agent type. They've all seen a cheap model produce
   confident, almost-right, broken code.
-- **The cost gap is the cleanest story.** "Flash wrote code that failed the test. Plumbline
+- **The cost gap is the cleanest story.** "Flash wrote code that failed the test. Assay
   retried with the failure as guidance, then escalated *only that step* to the strong model.
   Final: passing code, at a fraction of running everything on the expensive model." That's
   the `reliability.py` cascade (cheap → retry cheap → strong fallback; cost 1 vs 50) made
@@ -96,13 +96,13 @@ the call explicit and pairs it with the extraction example (which we already hav
 
 ## 4. The exact demo workflow (primary: code agent)
 
-A small multi-step coding agent runs on a **cheap** model. Plumbline sits in front of it (one
+A small multi-step coding agent runs on a **cheap** model. Assay sits in front of it (one
 line: change `base_url`, keep the key). We show the same task twice — once raw, once through
-Plumbline — side by side.
+Assay — side by side.
 
 **The task (kept tiny so it's read in 5 seconds on screen):**
 > "Write a Python function `merge_intervals(intervals)` that merges overlapping intervals,
-> plus return it as a passing solution." We ship a fixed hidden test suite Plumbline runs.
+> plus return it as a passing solution." We ship a fixed hidden test suite Assay runs.
 
 **The agent's steps:**
 1. **Plan** — outline the approach.
@@ -117,24 +117,24 @@ Plumbline — side by side.
 3. We run the hidden tests on screen: **one assertion fails, red.** The raw cheap model
    shipped broken code and didn't know.
 
-**Run B — cheap model + Plumbline (the save), live:**
-1. **TRACE** — Plumbline captures the generate step (input, output, model, tokens, cost).
-2. **VERIFY** — Plumbline runs the unit tests against the generated code. Deterministic. The
-   test fails → Plumbline *knows the step is bad*, without an LLM judge, without knowing the
+**Run B — cheap model + Assay (the save), live:**
+1. **TRACE** — Assay captures the generate step (input, output, model, tokens, cost).
+2. **VERIFY** — Assay runs the unit tests against the generated code. Deterministic. The
+   test fails → Assay *knows the step is bad*, without an LLM judge, without knowing the
    answer in advance. **This is the moment to narrate: "verification is cheaper than
    generation — running a test costs nothing next to writing the code."**
-3. **INTERVENE — step 1, retry cheap with guidance:** Plumbline re-runs the *same cheap model*,
+3. **INTERVENE — step 1, retry cheap with guidance:** Assay re-runs the *same cheap model*,
    feeding back the exact failing assertion as guidance ("test X failed: input …, expected …,
    got …"). Often the cheap model fixes it for ~1 more cheap unit.
-4. **INTERVENE — step 2, escalate just this step (if retry still red):** Plumbline falls back to
+4. **INTERVENE — step 2, escalate just this step (if retry still red):** Assay falls back to
    the **strong model for this one step only** — not the whole workflow. Tests go **green.**
-5. **LEARN** — Plumbline logs the failure + fix to the reliability database (the moat).
+5. **LEARN** — Assay logs the failure + fix to the reliability database (the moat).
 
 **The dashboard / scoreboard (the wow):** show three columns side by side, ideally as a
 live counter:
 - **Strong model, every step:** passes, but cost = high (e.g. ~50 units/step).
 - **Cheap model alone:** cheap, but **tests fail** (broken).
-- **Cheap + Plumbline:** **tests pass** AND cost ≈ cheap (a couple of cheap units, with at most
+- **Cheap + Assay:** **tests pass** AND cost ≈ cheap (a couple of cheap units, with at most
   one escalated step), i.e. a fraction of the all-strong bill.
 
 **Headline line (already in `SOURCE-OF-TRUTH.md` §16):**
@@ -157,7 +157,7 @@ duration_min:int}`." (This is literally `check_meeting`.)
 1. **Run A — cheap alone:** cheap model returns JSON that's *almost* right — e.g. `attendees`
    as a comma-separated string instead of a list, or `duration_min` as `"60"` (string) not
    `60`, or a missing field. Looks fine; silently wrong.
-2. **Run B — cheap + Plumbline:**
+2. **Run B — cheap + Assay:**
    - **VERIFY:** `parse_json` + `check_meeting` flag the exact problem ("`attendees` must be
      a non-empty list" / "`duration_min` must be an integer"). Deterministic.
    - **INTERVENE:** retry cheap with the reason as guidance → if still bad, escalate that one
@@ -197,4 +197,4 @@ matters for real agents — and that's what we demo, live, checkable by you.*
 - **Owner handoff:** Tech 1 (engine) wires the code sandbox + test runner into the
   `reliability.py` cascade; Tech 2 (surface) wires the three-column scoreboard into
   `dashboard.html`; Michelle owns the side-by-side stage choreography; Håkan delivers the
-  "watch it break, watch Plumbline save it" beat.
+  "watch it break, watch Assay save it" beat.

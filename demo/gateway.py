@@ -1,15 +1,15 @@
 """
-Plumbline gateway — the wired "point your base_url at Plumbline" path (stdlib only).
+Assay gateway — the wired "point your base_url at Assay" path (stdlib only).
 
-OpenAI-compatible POST /v1/chat/completions. Plumbline generates with your CHEAP model, VERIFIES
-the step (zero-config `format` checker by default, or pass a `bongo` field to choose another),
+OpenAI-compatible POST /v1/chat/completions. Assay generates with your CHEAP model, VERIFIES
+the step (zero-config `format` checker by default, or pass a `assay` field to choose another),
 and on failure ESCALATES that step to a STRONG model on a DIFFERENT provider — returning the
-corrected output plus a `bongo` trace (what broke, what fixed it, cost).
+corrected output plus a `assay` trace (what broke, what fixed it, cost).
 
 This is how a real user would connect:  base_url = http://localhost:8129/v1 , keep your key.
 
 Run:   python3 demo/gateway.py
-Mock by default (no keys needed). For real calls: BONGO_REAL=1 + MISTRAL_API_KEY + (ANTHROPIC_API_KEY or OPENAI_API_KEY).
+Mock by default (no keys needed). For real calls: ASSAY_REAL=1 + MISTRAL_API_KEY + (ANTHROPIC_API_KEY or OPENAI_API_KEY).
 """
 import json
 import os
@@ -18,8 +18,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import providers
 import scenarios
 
-PORT = int(os.environ.get("BONGO_GW_PORT", "8129"))
-REAL = os.environ.get("BONGO_REAL") == "1"
+PORT = int(os.environ.get("ASSAY_GW_PORT", "8129"))
+REAL = os.environ.get("ASSAY_REAL") == "1"
 CHEAP_PROVIDER = "mistral"
 STRONG_PROVIDER = "anthropic" if os.environ.get("ANTHROPIC_API_KEY") else "openai"
 COST = {"cheap": 1, "strong": 20}
@@ -32,7 +32,7 @@ def _gen(provider, prompt, mock_text):
     return mock_text
 
 
-def run_bongo(messages, checker, spec):
+def run_assay(messages, checker, spec):
     prompt = messages[-1].get("content", "") if messages and isinstance(messages[-1], dict) else ""
     trace, cost = [], 0
 
@@ -54,9 +54,9 @@ def run_bongo(messages, checker, spec):
         trace.append({"step": "escalate", "provider": STRONG_PROVIDER, "role": "strong",
                       "checker": checker, "ok": ok2, "detail": detail2, "output": strong_out})
         final = strong_out
-        fixed_by = "plumbline-escalation" if ok2 else "unrecovered"
+        fixed_by = "assay-escalation" if ok2 else "unrecovered"
         advice = (f"The cheap model ({CHEAP_PROVIDER}) failed the '{checker}' check ({detail}). "
-                  f"Plumbline escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
+                  f"Assay escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
                   f"to the strong model or tighten the prompt.")
 
     return {"content": final, "fixed_by": fixed_by, "cost": cost, "advice": advice, "trace": trace}
@@ -85,20 +85,20 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("body must be a JSON object")
         except Exception as e:
             return self._send(400, {"error": f"invalid request JSON: {e}"})
-        opts = body.get("plumbline", {}) or {}
+        opts = body.get("assay", {}) or {}
         checker = opts.get("checker", "format")         # zero-config default
         spec = opts.get("spec", [])                     # only some checkers use this
         model = body.get("model", "mistral-small")
         msgs = body.get("messages", [])
         if not isinstance(msgs, list):
             return self._send(400, {"error": "messages must be a list"})
-        r = run_bongo(msgs, checker, spec)
-        # OpenAI-compatible shape + a `plumbline` block with the reliability trace
+        r = run_assay(msgs, checker, spec)
+        # OpenAI-compatible shape + a `assay` block with the reliability trace
         self._send(200, {
-            "id": "plumbline-gw", "object": "chat.completion", "model": model,
+            "id": "assay-gw", "object": "chat.completion", "model": model,
             "choices": [{"index": 0, "finish_reason": "stop",
                          "message": {"role": "assistant", "content": r["content"]}}],
-            "plumbline": {"fixed_by": r["fixed_by"], "cost_units": r["cost"],
+            "assay": {"fixed_by": r["fixed_by"], "cost_units": r["cost"],
                           "advice": r["advice"], "trace": r["trace"],
                           "mode": "real" if REAL else "mock",
                           "providers": {"cheap": CHEAP_PROVIDER, "strong": STRONG_PROVIDER}},
@@ -106,7 +106,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"\n  Plumbline gateway:  http://localhost:{PORT}/v1/chat/completions"
+    print(f"\n  Assay gateway:  http://localhost:{PORT}/v1/chat/completions"
           f"   ({'REAL' if REAL else 'mock'} mode)\n"
           f"  Point your OpenAI client's base_url at http://localhost:{PORT}/v1 and keep your key.\n")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

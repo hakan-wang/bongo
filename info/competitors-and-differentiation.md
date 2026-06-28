@@ -1,8 +1,8 @@
-# Plumbline — Competitors & Differentiation
+# Assay — Competitors & Differentiation
 
 > **What this doc is for.** Read this if you're prepping the pitch, fielding a "isn't this
 > just X?" question, or deciding what NOT to build. It maps the whole crowded landscape
-> around Plumbline and pins down the *exact* lane Plumbline owns that nobody else does.
+> around Assay and pins down the *exact* lane Assay owns that nobody else does.
 >
 > It builds on the canonical docs — `info/SOURCE-OF-TRUTH.md` (§8 objections, §9 the stage
 > line) and `VISION.md`. If anything here conflicts with SOURCE-OF-TRUTH, that file wins.
@@ -19,7 +19,7 @@ watch a single step's **output**, decide cheaply that it's **wrong**, and **fix 
 step at runtime, across any provider.**
 
 That empty quadrant — **cross-provider + runtime + per-step correctness correction** — is
-Plumbline's lane. It's a real gap (confirmed by independent analysis, see "The verified
+Assay's lane. It's a real gap (confirmed by independent analysis, see "The verified
 verdict" below), not a marketing claim. The honest caveat: it's a *feature* gap being
 actively contested, not an empty category — so we win on execution + the cross-provider
 data moat, and we say that out loud.
@@ -34,7 +34,7 @@ These are the big, well-funded players. They capture traces, run evals, score qu
 and gate your CI. They are **passive**: they tell you something failed, they don't fix it
 mid-run.
 
-| Company | What they do | Why they're not Plumbline |
+| Company | What they do | Why they're not Assay |
 |---|---|---|
 | **Arize** (Phoenix, $1B+) | OTel/OpenInference tracing, eval, drift | Observability + offline eval. Not an inline runtime corrector. |
 | **Braintrust** (~$800M) | Evals, turns prod failures into CI test cases, quality gates | **Build-time / CI**, not runtime. No mid-request fix. |
@@ -70,7 +70,7 @@ none of them center.
 
 ### Bucket 3 — Cost gateways & routers (they ROUTE / CACHE / RETRY)
 
-These sit in the request path like Plumbline does, so they *feel* closest — but they're
+These sit in the request path like Assay does, so they *feel* closest — but they're
 passive on correctness. They do four primitives, all of which happen **before** generation
 or only on **infra** errors:
 
@@ -86,20 +86,20 @@ or only on **infra** errors:
 | **Portkey** (open-sourced Apache 2.0) | Gateway **guardrails** — deny / log / fallback / retry / redact | **Closest real overlap, but verify-only.** Portkey's own docs: guardrails do **not** regenerate or self-correct, and act on "the last message," not agent-trajectory correctness. |
 | **Helicone** (→ Mintlify, maintenance mode) | Proxy + observability | Acquired Mar 2026, no new features. **Don't build on it.** |
 | **Cloudflare AI Gateway** | Hosted/edge routing, caching | Edge-hosted, less interception control. |
-| **Routers: RouteLLM, NotDiamond, Martian, Unify** | Pre-generation model selection | Decide **before**, not after. RouterArena (2025) found all routers fall short of oracle precisely because they can't tell when the cheap model suffices — the exact gap Plumbline's per-step verification fills. |
+| **Routers: RouteLLM, NotDiamond, Martian, Unify** | Pre-generation model selection | Decide **before**, not after. RouterArena (2025) found all routers fall short of oracle precisely because they can't tell when the cheap model suffices — the exact gap Assay's per-step verification fills. |
 
 **FrugalGPT is the closest intellectual ancestor**, not a runtime competitor: generate
 cheap → score → escalate if low-confidence. But it's per single Q&A, single-provider in
 spirit, and uses a *trained* scorer — not per-step inside a live multi-step agent across
-Gemini/OpenAI/Anthropic/open models. **Plumbline = FrugalGPT's verify-and-escalate idea
+Gemini/OpenAI/Anthropic/open models. **Assay = FrugalGPT's verify-and-escalate idea
 generalized to cross-provider agent trajectories with active guidance/context-injection,
 not just escalation.**
 
 ---
 
-## Plumbline's lane (the empty quadrant)
+## Assay's lane (the empty quadrant)
 
-Plumbline is the only layer that is **all four at once**:
+Assay is the only layer that is **all four at once**:
 
 1. **Vendor-neutral / cross-provider** — Gemini, OpenAI, Anthropic, open/Chinese models.
 2. **Runtime, in the loop** — fixes *while the agent runs*, not a dashboard after.
@@ -121,7 +121,7 @@ scores**, built from real traffic — a data moat that compounds with every requ
 | YC detectors (Raindrop, Confident AI) | ✗ | ~ | ✓ (detect) | offline only |
 | Gateways/routers (OpenRouter, LiteLLM, Portkey) | ✓ | ✓ | ✗ | ✗ (errors only) |
 | Galileo runtime guardrails | ✗ | ✓ | safety, not correctness | canned response only |
-| **Plumbline** | **✓** | **✓** | **✓** | **✓** |
+| **Assay** | **✓** | **✓** | **✓** | **✓** |
 
 ---
 
@@ -141,7 +141,7 @@ per-step correction"* returned: **SUPPORTED** — with one honest correction.
   **Future AGI's "Agent Command Center"** — an OpenAI-compatible cross-provider gateway
   that scores requests inline and *claims* a "quality-floor evaluator at egress" that
   blocks low-quality responses and "regenerates via the next provider." That is materially
-  close to Plumbline. **Caveat:** this correctness-gated regeneration is asserted only in their
+  close to Assay. **Caveat:** this correctness-gated regeneration is asserted only in their
   marketing, not confirmed in their primary docs/GitHub — treat it as a real-but-unverified
   threat, not a shipped product.
 
@@ -161,7 +161,7 @@ This is the #1 objection. The answers (from SOURCE-OF-TRUTH §8, kept here for t
 competitive framing):
 
 - **Cross-provider is the moat a lab will never build.** A model maker only ever improves
-  its *own* model — it will never tell you "use the competitor's cheaper model." Plumbline sits
+  its *own* model — it will never tell you "use the competitor's cheaper model." Assay sits
   *above* all of them. (A QRT advisor confirmed this is exactly why he'd use it.)
 - **"You can't grade your own homework."** OpenAI is **deprecating its own Evals platform**
   (shutdown Nov 2026) and pointing users to third-party tools. Anthropic **endorses
@@ -191,11 +191,11 @@ not 100 provider adapters. This is consistent with `proxy.py` (our cost/caching 
 
 ## The one-sentence differentiation
 
-> **Everyone else tells you your agent failed. Plumbline catches it and fixes it — on a cheaper
+> **Everyone else tells you your agent failed. Assay catches it and fixes it — on a cheaper
 > model — across every provider, and shows you the cheapest model that still does the job.**
 
 (Crisper stage variant: *"Gateways route and retry on errors; observability tells you after
-the fact; Plumbline watches each step's output, cheaply decides it's wrong, and fixes that step
+the fact; Assay watches each step's output, cheaply decides it's wrong, and fixes that step
 at runtime — on any model."*)
 
 ---

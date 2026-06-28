@@ -1,5 +1,5 @@
 """
-Plumbline demo server — dependency-free (Python stdlib only).
+Assay demo server — dependency-free (Python stdlib only).
 
 Run:   python3 demo/server.py
 Open:  http://localhost:8200
@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import scenarios  # local
 
-PORT = int(os.environ.get("BONGO_PORT", "8200"))
+PORT = int(os.environ.get("ASSAY_PORT", "8200"))
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -46,5 +46,5 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"\n  Plumbline dashboard:  http://localhost:{PORT}\n  (Ctrl+C to stop)\n")
+    print(f"\n  Assay dashboard:  http://localhost:{PORT}\n  (Ctrl+C to stop)\n")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

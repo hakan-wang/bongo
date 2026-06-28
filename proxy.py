@@ -1,11 +1,11 @@
 """
-Plumbline: a drop-in cost layer for LLM APIs.
-Point your app's base_url at Plumbline, keep your code and key the same.
-Plumbline caches repeated/near-repeated calls so you stop paying for the same tokens twice.
+Assay: a drop-in cost layer for LLM APIs.
+Point your app's base_url at Assay, keep your code and key the same.
+Assay caches repeated/near-repeated calls so you stop paying for the same tokens twice.
 
 Run:  python3 proxy.py        (serves on http://localhost:8128)
 No dependencies. Mock mode by default so it runs offline for the demo.
-Set BONGO_REAL=1 and OPENAI_API_KEY to forward real calls.
+Set ASSAY_REAL=1 and OPENAI_API_KEY to forward real calls.
 """
 import json, os, re, time, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -25,7 +25,7 @@ def normalize(messages):
     return re.sub(r"\s+", " ", text)
 
 def mock_completion(prompt):
-    return "Here is a concise answer to: " + prompt[:60] + " ... (generated once, then cached by Plumbline)."
+    return "Here is a concise answer to: " + prompt[:60] + " ... (generated once, then cached by Assay)."
 
 def real_completion(model, messages):
     body = json.dumps({"model": model, "messages": messages}).encode()
@@ -80,7 +80,7 @@ class H(BaseHTTPRequestHandler):
             stats["events"].append({"t": time.time(), "cached": True, "saved": saved})
             text = hit["text"]
         else:             # MISS: pay once, then remember
-            text = real_completion(model, messages) if os.environ.get("BONGO_REAL") else mock_completion(key)
+            text = real_completion(model, messages) if os.environ.get("ASSAY_REAL") else mock_completion(key)
             comp_tokens = est_tokens(text)
             cache[key] = {"text": text, "tokens": comp_tokens}
             billed = prompt_tokens + comp_tokens
@@ -89,14 +89,14 @@ class H(BaseHTTPRequestHandler):
             stats["events"].append({"t": time.time(), "cached": False, "saved": 0})
 
         self._send(200, {
-            "id": "bongo-" + str(stats["requests"]),
+            "id": "assay-" + str(stats["requests"]),
             "object": "chat.completion",
             "model": model,
-            "bongo_cached": key in cache and stats["events"][-1]["cached"],
+            "assay_cached": key in cache and stats["events"][-1]["cached"],
             "choices": [{"index": 0, "message": {"role": "assistant", "content": text},
                          "finish_reason": "stop"}],
         })
 
 if __name__ == "__main__":
-    print("Plumbline cost layer on http://localhost:%d  (dashboard at /)" % PORT)
+    print("Assay cost layer on http://localhost:%d  (dashboard at /)" % PORT)
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()

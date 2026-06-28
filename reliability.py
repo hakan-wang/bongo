@@ -1,5 +1,5 @@
 """
-Plumbline reliability core: watch a cheap model's step, catch bad output, correct it.
+Assay reliability core: watch a cheap model's step, catch bad output, correct it.
 
 This is the MAIN feature. The logic here is real:
 - checkers are deterministic (valid JSON, required fields, right types, constraints)
@@ -13,7 +13,7 @@ import json
 # relative cost units: the strong model costs 50x the cheap one
 COST = {"cheap": 1, "strong": 50}
 
-# ---- deterministic checkers (how Plumbline knows a step is wrong, no AI judging AI) ----
+# ---- deterministic checkers (how Assay knows a step is wrong, no AI judging AI) ----
 def check_meeting(obj):
     """Return (ok, reason). The task: extract {title, date, attendees[list], duration_min int}."""
     if not isinstance(obj, dict):
@@ -38,7 +38,7 @@ def parse_json(text):
 # ---- the step runner: trace, check, recover ----
 def run_step(task_input, cheap_model, strong_model, max_retries=1):
     """
-    Run one agent step through Plumbline. Returns a trace dict.
+    Run one agent step through Assay. Returns a trace dict.
     Order: cheap model -> check -> retry cheap -> fall back to strong.
     """
     trace = {"input": task_input, "attempts": [], "cost": 0, "final": None, "fixed_by": None}

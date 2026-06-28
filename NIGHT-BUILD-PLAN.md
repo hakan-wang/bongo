@@ -1,17 +1,17 @@
-# NIGHT-BUILD-PLAN.md — Ship Plumbline by 13:00 Paris (Sun Jun 28)
+# NIGHT-BUILD-PLAN.md — Ship Assay by 13:00 Paris (Sun Jun 28)
 
-**Scope line (24h deadline):** Re-skin the existing engine onto the finance money-shot, make the recovery ladder + honesty case VISIBLE, rename to Plumbline everywhere, cut the <=5 min video. **Zero new core engine on the critical path.** Reuse `demo/scenarios.py`, `demo/server.py`, `index.html`, `demo/gateway.py`, `demo/real_proof.py`.
+**Scope line (24h deadline):** Re-skin the existing engine onto the finance money-shot, make the recovery ladder + honesty case VISIBLE, rename to Assay everywhere, cut the <=5 min video. **Zero new core engine on the critical path.** Reuse `demo/scenarios.py`, `demo/server.py`, `index.html`, `demo/gateway.py`, `demo/real_proof.py`.
 
 ---
 
 ## P0 — Must ship (the video cannot exist without these)
 
-### 1. Rename to Plumbline [~20 min] [HARD DEPENDENCY for video + deck]
-- [ ] 1.1 Wordmark on `index.html` header (swap "Plumbline")
+### 1. Rename to Assay [~20 min] [HARD DEPENDENCY for video + deck]
+- [ ] 1.1 Wordmark on `index.html` header (swap "Assay")
 - [ ] 1.2 Slide 1 title + logo
-- [ ] 1.3 Find/replace "Plumbline" across README, dashboard, deck
-- [ ] 1.4 10-min trademark clearance check (USPTO/EUIPO software class); if crowded → **Plumbline**
-- [ ] 1.5 VERIFY: grep repo for "Plumbline" returns only changelog/history
+- [ ] 1.3 Find/replace "Assay" across README, dashboard, deck
+- [ ] 1.4 10-min trademark clearance check (USPTO/EUIPO software class); if crowded → **Assay**
+- [ ] 1.5 VERIFY: grep repo for "Assay" returns only changelog/history
 
 ### 2. Finance money-shot scenario (the cold-open artifact) [~90 min]
 - [ ] 2.1 Add finance task to `TASKS` in `demo/scenarios.py`: input = fixed synthetic trade ticket / 10-K excerpt with **hardcoded ground truth** `{revenue, net_debt, counterparty, notional, currency}` + `settle_trade(amount, ccy, account)` tool call
@@ -29,7 +29,7 @@
 
 ### 4. The honesty-boundary case [~30 min] [non-negotiable insurance]
 - [ ] 4.1 Add one open-ended step with no deterministic ground truth
-- [ ] 4.2 Plumbline flags **"can't deterministically verify — low-confidence, NOT auto-passed"**
+- [ ] 4.2 Assay flags **"can't deterministically verify — low-confidence, NOT auto-passed"**
 - [ ] 4.3 VERIFY: it does NOT turn green; it renders an amber "flagged" state
 
 ### 5. Animated agent-trace "flight recorder" [~60 min]
@@ -40,7 +40,7 @@
 ### 6. On-screen overlays [~40 min]
 - [ ] 6.1 "COST OF SHIPPING THIS BUG: $X" counter on the finance catch
 - [ ] 6.2 Live escalation-rate counter ("2 of 5 escalated") — pre-empts #1 objection
-- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 60% → Plumbline 100%, 78% cheaper — as RECEIPTS at the end only
+- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 60% → Assay 100%, 78% cheaper — as RECEIPTS at the end only
 
 ### 7. Record + cut the video [~90 min] [GATEKEEPER]
 - [ ] 7.1 Single-take finance catch, cold-open in first 10s (no logo intro)
@@ -54,14 +54,14 @@
 ### 8. README + repo hygiene [~30 min] [submission requirement]
 - [ ] 8.1 What it does / how it works / install+run (reuse QUICKSTART)
 - [ ] 8.2 `python3 demo/scenarios.py` and dashboard run instructions verified clean-clone
-- [ ] 8.3 Public GitHub repo, Plumbline name, screenshot of the catch
+- [ ] 8.3 Public GitHub repo, Assay name, screenshot of the catch
 
 ---
 
 ## P1 — Strong polish (do if P0 done with >3h margin)
 
 - [ ] 9. **base_url drop-in proof** [~30 min]: film 2-line change on a real OSS agent using existing `demo/gateway.py`; agent now catches+escalates a failure it used to ship
-- [ ] 10. **Reliability-per-dollar leaderboard** [~45 min]: each provider row = accuracy %, $, composite score; Plumbline row on top beats every model on BOTH axes (reuse scoreboard data)
+- [ ] 10. **Reliability-per-dollar leaderboard** [~45 min]: each provider row = accuracy %, $, composite score; Assay row on top beats every model on BOTH axes (reuse scoreboard data)
 - [ ] 11. **real_proof.py live cross-provider** [~30 min]: run `demo/real_proof.py` with real keys (has `--mock` fallback) for one genuinely-live escalation clip
 - [ ] 12. **"Break it yourself" failure injector** [~60 min]: buttons to inject failure class (hallucinated field / wrong tool arg / schema drift / off-by-one); anti-"staged demo" move
 
@@ -77,7 +77,7 @@
 ## Loop / verify discipline (run after EVERY P0 item)
 1. `python3 demo/scenarios.py` — scoreboard fires, finance step red→green
 2. Open dashboard — ladder + honesty case + trace render
-3. grep for "Plumbline" — none in shipped assets
+3. grep for "Assay" — none in shipped assets
 4. Time the video segment — first 10s = the wrong-number catch, no jargon
 5. Clean-clone test before submit: fresh checkout → install → run → demo fires
 

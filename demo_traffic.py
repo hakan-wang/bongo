@@ -1,8 +1,8 @@
-"""Send sample agent-style traffic to Plumbline to show savings. python3 demo_traffic.py"""
+"""Send sample agent-style traffic to Assay to show savings. python3 demo_traffic.py"""
 import json, urllib.request
 
 URL = "http://localhost:8128/v1/chat/completions"
-# Agents resend the same / overlapping prompts constantly. That is the waste Plumbline kills.
+# Agents resend the same / overlapping prompts constantly. That is the waste Assay kills.
 prompts = [
     "What is the refund policy for double charges?",
     "What is the refund policy for double charges?",
@@ -24,7 +24,7 @@ def call(p):
 
 for p in prompts:
     res = call(p)
-    tag = "CACHED (free)" if res.get("bongo_cached") else "billed"
+    tag = "CACHED (free)" if res.get("assay_cached") else "billed"
     print(f"  [{tag:13}] {p}")
 
 s = json.loads(urllib.request.urlopen("http://localhost:8128/stats").read())

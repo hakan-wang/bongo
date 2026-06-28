@@ -1,18 +1,18 @@
-# Plumbline — Technical Playbook (for Tech 1 & Tech 2)
+# Assay — Technical Playbook (for Tech 1 & Tech 2)
 
 > **Audience:** the two engineers. Some of this is read cold by non-technical teammates too,
 > so each section starts with a plain-English "why."
 > **This builds on what's already in the repo.** It does not replace it. The canonical product
 > doc is `info/SOURCE-OF-TRUTH.md` (§6 is the technical core); the working engine is
 > `reliability.py`; the cost layer is `proxy.py`. Everything below extends those.
-> **Golden rule from §6:** Plumbline checks a step **against reality, not against another AI's opinion.**
+> **Golden rule from §6:** Assay checks a step **against reality, not against another AI's opinion.**
 > Lead with deterministic checks. Be honest about where they stop.
 
 ---
 
 ## 0. The one bet this whole product rides on
 
-**"Verification is cheaper than generation."** Plumbline runs a *cheap* model, watches each step,
+**"Verification is cheaper than generation."** Assay runs a *cheap* model, watches each step,
 catches the bad ones with a *cheap* check, and only spends real money (retry / escalate to a
 strong model) on the steps that actually failed.
 
@@ -33,10 +33,10 @@ a generic LLM-judge.
 
 ---
 
-## 1. How Plumbline sits on top of provider APIs (Tech 2's surface)
+## 1. How Assay sits on top of provider APIs (Tech 2's surface)
 
-**Plain English:** the customer changes one line — points `base_url` at Plumbline, keeps their own
-key — and Plumbline proxies to the real provider while watching every step.
+**Plain English:** the customer changes one line — points `base_url` at Assay, keeps their own
+key — and Assay proxies to the real provider while watching every step.
 
 ### 1a. The integration we already have, and where it goes
 `proxy.py` is an OpenAI-compatible HTTP server (caching + cost stats). That is the right shape.
@@ -49,7 +49,7 @@ loop can run in-band.
 |------|-----------|-------------|--------|
 | **A. Extend `proxy.py`** | Our own OpenAI-compatible proxy, add provider routing + a hook surface | We control everything; best for the demo | Low–Med |
 | **B. LiteLLM proxy under the hood** | MIT, self-hostable, one OpenAI-compatible endpoint over 100+ providers (OpenAI, Anthropic `/v1/messages`, Gemini), translates formats | If we want real cross-provider in 36h without writing N adapters | Low |
-| **C. OTel auto-instrumentation** | If the customer app uses a framework (LangChain/LlamaIndex/CrewAI), one-line OpenInference or OpenLLMetry instrumentor emits spans; Plumbline receives OTLP | Second integration path, post-demo | Low (their side) |
+| **C. OTel auto-instrumentation** | If the customer app uses a framework (LangChain/LlamaIndex/CrewAI), one-line OpenInference or OpenLLMetry instrumentor emits spans; Assay receives OTLP | Second integration path, post-demo | Low (their side) |
 
 **Recommendation for the 36h:** keep `proxy.py` as the **demo-controlled** path (Path A) so we
 own the live story, and have **LiteLLM (Path B)** ready as the "and it works across every
@@ -82,7 +82,7 @@ OTLP-exportable later:
   `gen_ai.tool.name`.
 - **Multi-step structure = a span tree under one `trace_id`**: `invoke_agent` (parent) → child
   `chat` spans per LLM call → `execute_tool` per tool. Stamp every span with a
-  `session.id` / `conversation.id` so turns group correctly. This is how Plumbline reconstructs
+  `session.id` / `conversation.id` so turns group correctly. This is how Assay reconstructs
   "every step" and attributes a bad step to its place in the workflow.
 
 > **Caveats (verified):** (1) OTel GenAI conventions are still drifting (`gen_ai.provider.name`
@@ -130,7 +130,7 @@ latency.** This is the empirical proof of our bet — **lead with it on stage.**
 ### The business case (compounding errors) — for the pitch, but it's also why per-step matters
 At 95% per-step accuracy a **10-step task succeeds only ~60%** of the time; 90% → 35%; only **24%
 of real agent tasks complete first try.** One bad early step poisons everything downstream. That
-is exactly why Plumbline verifies **per-step, incrementally**, not once at the end. (Bonus, verified:
+is exactly why Assay verifies **per-step, incrementally**, not once at the end. (Bonus, verified:
 post-hoc localization of *which* step failed in a finished 6M-token trace is essentially unsolved
 — best SOTA ~11%. So **verify as the trace streams**, don't try to debug the whole thing after.)
 
@@ -239,7 +239,7 @@ and escalation supplies a genuinely different (stronger) signal.
   at ~11–26% of strong-model calls; routers transfer across model pairs without retraining (good
   for vendor-neutral). **But:** routing is *pre-generation* and partly **commoditized** (GPT-5
   ships a built-in router; OpenRouter Auto exists). **Do not pitch routing as the innovation** —
-  it's the loser's framing. Plumbline's edge is **per-step runtime correction**, which routing/cascades
+  it's the loser's framing. Assay's edge is **per-step runtime correction**, which routing/cascades
   don't do; routing is at most a secondary lever.
 
 > **Cost honesty (verified):** sampling N× for agreement, or running a judge step, is **not free**.
@@ -258,7 +258,7 @@ and escalation supplies a genuinely different (stronger) signal.
 ## 5. Reliability scoring of unknown models + the reliability-DB moat
 
 **Plain English:** the side feature ("which model is actually reliable for *your* job") and the
-long-term moat. Because Plumbline proxies real traffic, it measures reliability on the task the
+long-term moat. Because Assay proxies real traffic, it measures reliability on the task the
 customer *actually* runs — which no public benchmark covers.
 
 ### 5a. Don't trust leaderboards as per-task scores
@@ -330,7 +330,7 @@ the savings legible. Replace with real per-model token pricing once real calls a
 
 ## 7. One-paragraph summary (read this if you read nothing else)
 
-Plumbline is a proxy (extend `proxy.py`, optionally LiteLLM underneath) that emits OTel GenAI spans,
+Assay is a proxy (extend `proxy.py`, optionally LiteLLM underneath) that emits OTel GenAI spans,
 runs a **cheapest-first verifier cascade** (deterministic schema/exec/citation/loop checks →
 state-diff/cross-model → gated self-consistency → narrow NLI judge — **never a generic LLM judge as
 the core**), and on a flagged step **intervenes with new information** (checker reason, missing
