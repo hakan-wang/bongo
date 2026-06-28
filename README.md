@@ -32,7 +32,7 @@ You keep your model. You keep your price. You stop shipping wrong answers.
 | Eval — Raindrop, Galileo | ✓ | offline | ✓ | ✕ — fixes offline / canned override |
 | **Assay** | **✓** | **✓** | **✓** | **✓ — catches the wrong step and fixes only it, live, across providers** |
 
-The loop is copyable in a month; the **cross-provider per-(model × task) reliability data that compounds with traffic** is not. (More: [`info/competitors-and-differentiation.md`](info/competitors-and-differentiation.md).)
+The loop is copyable in a month; the **cross-provider per-(model × task) reliability data that compounds with traffic** is not.
 
 **Track:** Software for Agents · **Paris Builds** (Unaite × Y Combinator).
 
@@ -83,7 +83,6 @@ See **[`QUICKSTART.md`](QUICKSTART.md)**.
 ## Repo map
 - **[`positioning/`](positioning/)** — `POSITIONING.md`, the **`VIDEO-SCRIPT.md`** (≤5 min), `PITCH-DECK.md`.
 - **[`NIGHT-BUILD-PLAN.md`](NIGHT-BUILD-PLAN.md)** — the build checklist + scope.
-- **[`info/`](info/)** — strategy, judges, competitors, technical playbook (start at `info/SOURCE-OF-TRUTH.md`).
 - **[`TEAM-BUILD-PLAN.md`](TEAM-BUILD-PLAN.md)** — work split (Filip's tasks).
 - `reliability.py`, `proxy.py` — the original reliability loop + cost/caching proxy.
 
