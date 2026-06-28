@@ -57,4 +57,4 @@ Use FrugalGPT cascade + generator-verifier asymmetry + verifier-based best-of-N 
 - "router" (except to say what we are NOT)
 
 ## The name
-**Assay** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Assay caught it"), scales beyond coding. Domain plan: check `assay.dev` / `getassay.com` / `assay.ai` (Haonan, TEAM-WORKLOADS Task 4). Chosen over "Assay" to avoid collision with Assay AG (robotics) and finance/wealth firms.
+**Assay** (winner). One word, premium, says the moat (deterministic truth-based verification), works as a noun and a verb ("Assay caught it"), scales beyond coding. Domain plan: check `assay.dev` / `getassay.com` / `assay.ai`. Chosen over "Assay" to avoid collision with Assay AG (robotics) and finance/wealth firms.

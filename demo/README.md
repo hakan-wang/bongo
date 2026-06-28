@@ -32,7 +32,7 @@ No dependencies (Python stdlib only). Works offline.
 
 → **100% reliable, 74% cheaper than the big model.** Cheap alone silently shipped 2 broken results (incl. a wrong wire).
 
-## Next (see ../BUILD-PLAN.md)
+## Next
 - [P1] real-API live mode (`ASSAY_REAL=1`)
 - [P1] "connect your API" wired to the team's `proxy.py`
 - [P2] per-step drill-down / replay
