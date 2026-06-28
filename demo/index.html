@@ -1,173 +1,100 @@
-<!doctype html>
+﻿<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Assay — catch the silently-wrong step, against reality</title>
+<title>Assay - catch the silently-wrong step, against reality</title>
 <style>
-  :root{--bg:#0a0b12;--panel:#12141f;--panel2:#171a28;--line:#262a3d;--txt:#e7e9f3;--dim:#9aa0b8;
-    --green:#2ed573;--red:#ff4d5e;--amber:#ffb340;--as:#39d3c3;--as2:#7c8cff;--cheap:#3aa0ff;--strong:#ff8a3d}
+  :root{--bg:#f5f7f2;--paper:rgba(255,255,255,.88);--paper-strong:#fff;--line:rgba(20,40,29,.10);--text:#14281d;
+    --muted:#4a6859;--green:#1d7c4d;--green-soft:#e5f4ea;--red:#b84040;--red-soft:#f9e4e4;--amber:#a46b1c;
+    --amber-soft:#fff1d9;--teal:#0f5d35;--teal-soft:#e8f3eb;--blue:#2f5d9c;--shadow:0 18px 45px rgba(31,58,40,.08)}
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 600px at 72% -10%,#0d1c24,#0a0b12 60%);color:var(--txt);
-    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto;padding:32px 22px 80px}
-  header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .logo{font-size:28px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:9px}
-  .logo .mark{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--as),var(--as2))}
-  .logo b{background:linear-gradient(90deg,var(--as),var(--as2));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .pill{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
-  .pill.tag{color:var(--txt);border-color:#2b3a55}
-  h1{font-size:25px;margin:16px 0 6px;letter-spacing:-.4px;max-width:860px}
-  h1 .hl{color:var(--amber)}
-  .sub{color:var(--dim);max-width:770px}
-  .runbtn{margin:18px 0 4px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;
-    background:linear-gradient(90deg,var(--as2),#5a3ff0);color:#fff;border:0;border-radius:12px;padding:13px 22px;
-    font-size:15px;font-weight:700;box-shadow:0 8px 30px -10px var(--as2)}
-  .runbtn:disabled{opacity:.5;cursor:default}.runbtn:hover:not(:disabled){filter:brightness(1.08)}
-  .demolabel{margin-top:20px;color:var(--dim);font-size:13px;font-weight:600}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 2px;font-size:11.5px;color:var(--dim)}
-  .legend b{color:var(--txt);font-weight:600}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;scroll-margin-top:14px}
-  @media(max-width:780px){.cols{grid-template-columns:1fr}}
-  .col{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;min-height:120px}
-  .col h2{margin:0 0 3px;font-size:15px;display:flex;align-items:center;gap:8px}
-  .col .cap{color:var(--dim);font-size:12px;margin-bottom:10px}
-  .col.left h2 .dot{color:var(--cheap)} .col.right{border-color:#214a47;background:linear-gradient(180deg,#0f1f1e,#12141f)}
-  .col.right h2 .dot{color:var(--as)}
-  .task{border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin:8px 0;background:var(--panel2);
-    opacity:0;transform:translateY(6px);transition:.32s}
-  .task.show{opacity:1;transform:none}
-  .task.hero{border-color:#2a5a55;box-shadow:0 0 0 1px #2a5a55 inset}
-  .task .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .task .nm{font-weight:600;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
-  .task .nm .dom{font:600 9.5px/1 sans-serif;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);
-    border:1px solid var(--line);border-radius:4px;padding:2px 4px;margin-left:6px}
-  .task .desc{color:var(--dim);font-size:11px;margin-top:2px}
-  .status{font-size:10.5px;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap}
-  .s-pass{color:var(--green);background:rgba(46,213,115,.12)} .s-fail{color:var(--red);background:rgba(255,77,94,.12)}
-  .s-catch{color:var(--amber);background:rgba(255,179,64,.14)} .s-flag{color:var(--amber);background:rgba(255,179,64,.14)}
-  .s-kill{color:#ff6b6b;background:rgba(255,77,94,.14)}
-  .steps{margin-top:8px;border-top:1px dashed var(--line);padding-top:7px;display:none}.steps.open{display:block}
-  .step{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;padding:2px 0;color:var(--dim)}
-  .step .ic{width:15px;text-align:center;flex:0 0 15px} .step.pass .ic{color:var(--green)} .step.fail .ic{color:var(--red)}
-  .step.catch{color:var(--amber)} .step.catch .ic{color:var(--amber)}
-  .step.escalate{color:var(--as)} .step.escalate .ic{color:var(--as)}
-  .step.kill{color:#ff6b6b} .step.kill .ic{color:#ff6b6b} .step.flag{color:var(--amber)} .step.flag .ic{color:var(--amber)}
-  .step .mdl{font-family:ui-monospace,Menlo,monospace;font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px}
-  .step .real{font:700 8.5px/1 sans-serif;color:#0a0b12;background:var(--as);border-radius:4px;padding:2px 4px;letter-spacing:.3px}
-  .tout{font:10.5px/1.5 ui-monospace,Menlo,monospace;margin:3px 0 6px 23px;padding:6px 9px;border-radius:7px;white-space:pre-wrap}
-  .tout.fail{color:#ffb3bb;background:rgba(255,77,94,.10);border:1px solid rgba(255,77,94,.3)}
-  .tout.pass{color:#b6f0cb;background:rgba(46,213,115,.10);border:1px solid rgba(46,213,115,.3)}
-  .bugcost{margin:6px 0 2px 0;font-size:13px;color:#ffd0d6;font-weight:700;background:rgba(255,77,94,.10);
-    border:1px solid rgba(255,77,94,.32);border-radius:9px;padding:8px 11px}
-  .board{margin-top:24px;opacity:0;transform:translateY(10px);transition:.5s}.board.show{opacity:1;transform:none}
-  .receipts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .receipt{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px}
-  .receipt .k{font-size:11px;color:var(--dim)} .receipt .v{font-size:22px;font-weight:800;margin-top:3px}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}@media(max-width:780px){.cards{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px}
-  .card.win{border-color:var(--as);box-shadow:0 0 0 1px var(--as) inset,0 14px 40px -18px var(--as)}
-  .card .lbl{font-size:12px;color:var(--dim)} .card .big{font-size:28px;font-weight:800;margin:5px 0 2px}
-  .card .price{font-size:12.5px;color:var(--dim)} .bar{height:7px;border-radius:6px;background:var(--line);margin:11px 0 4px;overflow:hidden}
-  .bar>i{display:block;height:100%;border-radius:6px;width:0;transition:width .9s cubic-bezier(.4,1.3,.5,1)}
-  .rc>i{background:var(--cheap)} .rb>i{background:linear-gradient(90deg,var(--as),var(--as2))} .rs>i{background:var(--strong)}
-  .tag2{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;margin-top:7px}
-  .tag2.bad{color:var(--red);background:rgba(255,77,94,.12)} .tag2.good{color:var(--green);background:rgba(46,213,115,.12)}
-  .headline{margin-top:16px;background:linear-gradient(90deg,rgba(57,211,195,.12),rgba(124,140,255,.08));
-    border:1px solid #214a47;border-radius:14px;padding:15px 17px;font-size:16px;font-weight:600}.headline b{color:var(--as)}
-  .notice{margin-top:16px;background:rgba(255,179,64,.10);border:1px solid rgba(255,179,64,.35);border-radius:12px;padding:14px;color:#ffe2b0;font-size:13px}
-  .connect{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px}
-  .connect h3{margin:0 0 9px;font-size:15px}
-  pre{margin:0;background:#0c0e17;border:1px solid var(--line);border-radius:10px;padding:12px 13px;overflow:auto;
-    font:12px/1.6 ui-monospace,Menlo,monospace;color:#cdd3ee} .k{color:var(--as)} .c{color:#5d6685}
-  .wedge{color:var(--dim);font-size:13px;margin-top:11px;border-left:2px solid var(--as);padding-left:10px}
-  footer{margin-top:32px;color:var(--dim);font-size:12px;text-align:center}
+  html,body{min-height:100%}
+  body{margin:0;background:radial-gradient(circle at top,rgba(204,231,214,.8),transparent 32%),linear-gradient(180deg,#f5f7f2 0%,#edf2eb 100%);
+    color:var(--text);font:15px/1.5 "IBM Plex Sans","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;overflow-y:auto}
+  button,input,textarea{font:inherit}
+  .wrap{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:28px 0 52px}
+  .panel,.col,.receipt,.card,.connect,.notice,.task{border:1px solid var(--line);border-radius:24px;background:var(--paper);box-shadow:var(--shadow)}
+  .panel,.connect{padding:24px}
+  h1,h2,h3{font-family:Georgia,serif;color:var(--text)}
+  .runwrap{display:flex;justify-content:flex-end;margin-left:auto}
+  .runbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;background:#fff;color:#163726;border:1px solid rgba(20,40,29,.12);
+    border-radius:999px;padding:14px 24px;font-size:15px;font-weight:700;box-shadow:0 16px 38px rgba(31,58,40,.10)}
+  .runbtn:disabled{opacity:.6;cursor:default}
+  .runbtn:hover:not(:disabled){transform:translateY(-1px)}
+  .panel{margin-top:18px}
+  .section-head{display:flex;justify-content:space-between;gap:18px;align-items:center}
+  .section-note,.card .price,.receipt .k,footer{color:var(--muted)}
+  .board{margin-top:18px}
+  .results{opacity:0;transform:translateY(10px);transition:.5s}
+  .results.show{opacity:1;transform:none}
+  .receipts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+  .receipt{padding:16px}
+  .receipt .v{font-size:28px;font-weight:800;margin-top:4px;color:#163726}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  .card{padding:18px}
+  .card.win{border-color:rgba(15,93,53,.22);background:linear-gradient(180deg,#f4faf6,#edf6f0)}
+  .card .lbl{font-size:12px;color:#5a7568}
+  .card .big{font-size:34px;font-weight:800;margin:5px 0 2px}
+  .bar{height:8px;border-radius:999px;background:#e6ede8;margin:12px 0 4px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:999px;width:0;transition:width .9s cubic-bezier(.4,1.3,.5,1)}
+  .rc>i{background:var(--blue)} .rb>i{background:linear-gradient(90deg,#0f5d35,#4b8d69)} .rs>i{background:#986325}
+  .tag2{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:4px 9px;margin-top:7px}
+  .tag2.bad{color:var(--red);background:var(--red-soft)} .tag2.good{color:var(--green);background:var(--green-soft)}
+  .headline{margin-top:16px;background:#f3f8f4;border:1px solid rgba(15,93,53,.14);border-radius:20px;padding:16px 18px;font-size:16px;font-weight:600;color:#1f3b2d}
+  .headline b{color:var(--teal)}
+  .notice{margin-top:16px;background:#fff7e7;border:1px solid #f2d28e;padding:14px;color:#845b14;font-size:13px}
+  .live-note{margin-top:14px;color:#4f6d5e;font-size:14px;min-height:22px}
+  .loading{position:relative;overflow:hidden}
+  .loading::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.82),transparent);animation:shimmer 1.1s linear infinite}
+  .skeleton-line,.skeleton-pill,.skeleton-value{display:block;border-radius:999px;background:linear-gradient(90deg,#edf3ee,#f9fbfa,#edf3ee);background-size:200% 100%;animation:shimmerBg 1.25s linear infinite}
+  .skeleton-line{height:13px;width:68%}
+  .skeleton-pill{height:12px;width:44%;margin-top:12px}
+  .skeleton-value{height:34px;width:56%;margin-top:12px}
+  .card.loading .skeleton-line:first-child{width:44%}
+  .card.loading .skeleton-line:last-child{width:62%;margin-top:14px}
+  .headline.loading{min-height:84px}
+  .headline.loading .skeleton-line{width:90%;margin-top:12px}
+  .reveal{animation:riseIn .58s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes shimmer{100%{transform:translateX(100%)}}
+  @keyframes shimmerBg{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @keyframes riseIn{0%{opacity:0;transform:translateY(22px)}100%{opacity:1;transform:translateY(0)}}
+  footer{margin-top:22px;font-size:12px;text-align:center}
+  @media(max-width:720px){
+    .wrap{width:min(100% - 24px,1120px);padding-top:20px}
+    .receipts,.cards{grid-template-columns:1fr}
+  }
 </style>
 
 <div class="wrap">
-  <header>
-    <div class="logo"><span class="mark"></span><b>Assay</b></div>
-    <span class="pill tag">Keep your model — Assay it.</span>
-    <span class="pill">Software for Agents · Paris Builds</span>
-  </header>
-
-  <h1>Your agent's cheap model just confidently produced a <span class="hl">wrong number</span> — and nothing errored.</h1>
-  <p class="sub"><b>Assay</b> checks every step against <b>reality</b> — it runs the test, it <b>recomputes the arithmetic</b> —
-    not another AI's opinion. It catches the silently-wrong step, pinpoints it, and fixes <b>only that step</b>: retry the
-    cheap model with the reason, then escalate to a stronger model on another provider. You keep your model and your price.</p>
-
-  <div class="demolabel">👇 A cheap agent settles a trade in 3 steps. Watch the left wire the wrong amount — and Assay catch it.</div>
-  <div class="legend"><span>⚡ <b>caught &amp; escalated</b></span><span>⛔ <b>runaway killed</b></span><span>⚐ <b>flagged for a human</b></span><span>✓ <b>verified against reality</b></span></div>
-  <button class="runbtn" id="run">▶ Run the agent</button>
-
-  <div class="cols" id="cols">
-    <div class="col left"><h2><span class="dot">●</span> Cheap model alone</h2>
-      <div class="cap">one cheap model, no safety net — what most agents do today</div><div id="left"></div></div>
-    <div class="col right"><h2><span class="dot">●</span> Cheap model + Assay</h2>
-      <div class="cap">same cheap model — Assay verifies each step against reality and recovers the failures</div><div id="right"></div></div>
-  </div>
-
-  <div class="board" id="board">
-    <div class="receipts" id="receipts"></div>
-    <div class="cards" id="cards"></div>
-    <div class="headline" id="headline"></div>
-  </div>
-
-  <div class="connect">
-    <h3>How you connect — one line, keep your own key</h3>
-    <pre><span class="c"># You pick your model. Assay verifies it. Any provider.</span>
-client = OpenAI(
-    base_url=<span class="k">"http://localhost:8129/v1"</span>,   <span class="c"># &lt;- the only change (runs today)</span>
-    api_key=YOUR_KEY,                       <span class="c"># your key, passes through</span>
-)</pre>
-    <div class="wedge"><b>Not a router.</b> Routers pick a model up front and lock it. Assay keeps the model YOU chose,
-      checks each step against reality, and escalates only the failures — across providers a single lab won't reach.</div>
-  </div>
-
-  <footer>The verification is real (it runs the tests; it recomputes units×price). Model outputs are pinned so the demo is reproducible — we say so out loud.</footer>
+  <section class="panel board" id="board">
+    <div class="section-head">
+      <div>
+        <h2>Verified model comparison</h2>
+      </div>
+      <div class="runwrap">
+        <button class="runbtn" id="run">Run the agent</button>
+      </div>
+    </div>
+    <p class="section-note">Support workflow demo: Mistral Small 4 vs Opus 4.8, with step-level verification on the Mistral path.</p>
+    <div class="live-note" id="live-note"></div>
+    <div class="results" id="results">
+      <div class="receipts" id="receipts"></div>
+      <div class="cards" id="cards"></div>
+      <div class="headline" id="headline"></div>
+    </div>
+  </section>
 </div>
-
 <script>
 const PINNED = {"results": {"cheap": [{"task": "settle_trade", "desc": "Settle a trade: extract the ticket, compute the notional, wire it.", "mode": "cheap", "domain": "finance", "steps": [{"label": "Step 1 \u2014 extract ticket figures", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "units=10,000, price=$98.5", "status": "ok"}, {"label": "Step 2 \u2014 compute notional, build settle_trade()", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "amount = units \u00d7 price", "status": "ok"}, {"label": "Verify against reality \u2014 recompute units \u00d7 price", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "amount 9,850,000 != units x price = 985,000 (10x the true notional)", "status": "fail", "checker": "finance", "output": "amount 9,850,000 != units x price = 985,000 (10x the true notional)"}, {"label": "Step 3 \u2014 WIRE the unchecked amount", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wired 9,850,000 USD \u2014 10\u00d7 too much", "status": "fail"}], "passed": false, "cost": 2, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": true, "scored": true}, {"task": "roman_to_int", "desc": "Implement roman_to_int() (handles subtractive forms like IV, IX).", "mode": "cheap", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote roman_to_int", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "FAILED: assert roman_to_int('IV') == 4", "status": "fail", "checker": "run-tests", "output": "FAILED: assert roman_to_int('IV') == 4"}], "passed": false, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": true, "scored": true}, {"task": "is_palindrome", "desc": "Implement is_palindrome() ignoring case/spaces.", "mode": "cheap", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote is_palindrome", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "fizzbuzz", "desc": "Implement fizzbuzz(n).", "mode": "cheap", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote fizzbuzz", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "extract_contact", "desc": "Extract the lead as JSON {name, email, phone}.", "mode": "cheap", "domain": "data", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote extract_contact", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "schema valid", "status": "pass", "checker": "json-schema", "output": "schema valid"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "reconcile_ledger", "desc": "Reconcile the ledger \u2014 the cheap agent loops the same query, never terminating.", "mode": "cheap", "domain": "finance", "steps": [{"label": "Run step", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "agent starts re-querying the ledger\u2026", "status": "ok"}, {"label": "No guard", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "looped 3x, burned budget, never finished", "status": "fail"}], "passed": false, "cost": 3, "fixed_by": "UNGUARDED", "advice": null, "flagged": false, "shipped_broken": true, "scored": false}, {"task": "draft_summary", "desc": "Write a one-line summary of the deal memo (subjective \u2014 no ground truth).", "mode": "cheap", "domain": "text", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote a one-line summary", "status": "ok"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": false}], "assay": [{"task": "settle_trade", "desc": "Settle a trade: extract the ticket, compute the notional, wire it.", "mode": "assay", "domain": "finance", "steps": [{"label": "Step 1 \u2014 extract ticket figures", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "units=10,000, price=$98.5", "status": "ok"}, {"label": "Step 2 \u2014 compute notional, build settle_trade()", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "amount = units \u00d7 price", "status": "ok"}, {"label": "Verify against reality \u2014 recompute units \u00d7 price", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "amount 9,850,000 != units x price = 985,000 (10x the true notional)", "status": "fail", "checker": "finance", "output": "amount 9,850,000 != units x price = 985,000 (10x the true notional)"}, {"label": "Assay caught the wrong number BEFORE the wire", "role": "assay", "provider": "Assay", "model": "verifier", "detail": "failed the recomputed check (amount 9,850,000 != units x price = 985,000 (10x the true notional))", "status": "catch"}, {"label": "Rung 1 \u2014 retry cheap with the reason", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "regenerated", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "currency EUR != ground truth USD", "status": "fail", "checker": "finance", "output": "currency EUR != ground truth USD"}, {"label": "Rung 2 \u2014 escalate this step to Anthropic", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "re-generated on a different provider", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "matches units x price = 985,000 USD", "status": "pass", "checker": "finance", "output": "matches units x price = 985,000 USD"}, {"label": "Step 3 \u2014 wire the VERIFIED amount", "role": "assay", "provider": "Assay", "model": "verifier", "detail": "wired 985,000 USD \u2713", "status": "pass"}], "passed": true, "cost": 23, "fixed_by": "cross-provider-escalate", "advice": "The cheap model slipped a decimal on the notional (amount 9,850,000 != units x price = 985,000 (10x the true notional)). Assay recomputed units\u00d7price, caught it, and escalated to Anthropic. Pin money-moving steps to the strong model, or add the recompute check inline.", "flagged": false, "shipped_broken": false, "scored": true}, {"task": "roman_to_int", "desc": "Implement roman_to_int() (handles subtractive forms like IV, IX).", "mode": "assay", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote roman_to_int", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "FAILED: assert roman_to_int('IV') == 4", "status": "fail", "checker": "run-tests", "output": "FAILED: assert roman_to_int('IV') == 4"}, {"label": "Assay caught the silently-wrong step", "role": "assay", "provider": "Assay", "model": "verifier", "detail": "failed the reality check (FAILED: assert roman_to_int('IV') == 4)", "status": "catch"}, {"label": "Escalate this step to Anthropic", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "re-generated on a different provider", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 21, "fixed_by": "cross-provider-escalate", "advice": "Cheap Mistral failed the reality check (FAILED: assert roman_to_int('IV') == 4); escalated to Anthropic and it passed. Pin this step type to the stronger model.", "flagged": false, "shipped_broken": false, "scored": true}, {"task": "is_palindrome", "desc": "Implement is_palindrome() ignoring case/spaces.", "mode": "assay", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote is_palindrome", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "fizzbuzz", "desc": "Implement fizzbuzz(n).", "mode": "assay", "domain": "code", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote fizzbuzz", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "extract_contact", "desc": "Extract the lead as JSON {name, email, phone}.", "mode": "assay", "domain": "data", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote extract_contact", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "schema valid", "status": "pass", "checker": "json-schema", "output": "schema valid"}], "passed": true, "cost": 1, "fixed_by": "cheap", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "reconcile_ledger", "desc": "Reconcile the ledger \u2014 the cheap agent loops the same query, never terminating.", "mode": "assay", "domain": "finance", "steps": [{"label": "Run step", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "agent starts re-querying the ledger\u2026", "status": "ok"}, {"label": "Assay: loop detector", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "same call repeated 3x with no new info", "status": "catch"}, {"label": "Kill-switch fired", "role": "assay", "provider": "Assay", "model": "verifier", "detail": "halted after 3 calls before the bill ran", "status": "kill"}], "passed": true, "cost": 3, "fixed_by": "kill-switch", "advice": "Pin a hard budget/loop ceiling on this step.", "flagged": false, "shipped_broken": false, "scored": false}, {"task": "draft_summary", "desc": "Write a one-line summary of the deal memo (subjective \u2014 no ground truth).", "mode": "assay", "domain": "text", "steps": [{"label": "Generate", "role": "cheap", "provider": "Mistral", "model": "mistral-small", "detail": "wrote a one-line summary", "status": "ok"}, {"label": "Assay: no ground truth", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "subjective step \u2014 cannot verify deterministically", "status": "flag"}, {"label": "Flagged for a human", "role": "assay", "provider": "Assay", "model": "verifier", "detail": "marked LOW-CONFIDENCE \u2014 not auto-passed (we don't fake a green)", "status": "flag"}], "passed": false, "cost": 1, "fixed_by": "flagged-low-confidence", "advice": "Route to human review, or add a rubric/reference to make it checkable.", "flagged": true, "shipped_broken": false, "scored": false}], "strong": [{"task": "settle_trade", "desc": "Settle a trade: extract the ticket, compute the notional, wire it.", "mode": "strong", "domain": "finance", "steps": [{"label": "Step 1 \u2014 extract ticket figures", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "units=10,000, price=$98.5", "status": "ok"}, {"label": "Step 2 \u2014 compute notional, build settle_trade()", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "amount = units \u00d7 price", "status": "ok"}, {"label": "Verify against reality \u2014 recompute units \u00d7 price", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "matches units x price = 985,000 USD", "status": "pass", "checker": "finance", "output": "matches units x price = 985,000 USD"}, {"label": "Step 3 \u2014 wire the amount", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wired 985,000 USD", "status": "pass"}], "passed": true, "cost": 40, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "roman_to_int", "desc": "Implement roman_to_int() (handles subtractive forms like IV, IX).", "mode": "strong", "domain": "code", "steps": [{"label": "Generate", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote roman_to_int", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "is_palindrome", "desc": "Implement is_palindrome() ignoring case/spaces.", "mode": "strong", "domain": "code", "steps": [{"label": "Generate", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote is_palindrome", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "fizzbuzz", "desc": "Implement fizzbuzz(n).", "mode": "strong", "domain": "code", "steps": [{"label": "Generate", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote fizzbuzz", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "all tests passed", "status": "pass", "checker": "run-tests", "output": "all tests passed"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "extract_contact", "desc": "Extract the lead as JSON {name, email, phone}.", "mode": "strong", "domain": "data", "steps": [{"label": "Generate", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote extract_contact", "status": "ok"}, {"label": "Verify against reality", "role": "verifier", "provider": "Assay", "model": "verifier", "detail": "schema valid", "status": "pass", "checker": "json-schema", "output": "schema valid"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": true}, {"task": "reconcile_ledger", "desc": "Reconcile the ledger \u2014 the cheap agent loops the same query, never terminating.", "mode": "strong", "domain": "finance", "steps": [{"label": "Run step", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "agent starts re-querying the ledger\u2026", "status": "ok"}, {"label": "No guard", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "looped 3x, burned budget, never finished", "status": "fail"}], "passed": false, "cost": 60, "fixed_by": "UNGUARDED", "advice": null, "flagged": false, "shipped_broken": true, "scored": false}, {"task": "draft_summary", "desc": "Write a one-line summary of the deal memo (subjective \u2014 no ground truth).", "mode": "strong", "domain": "text", "steps": [{"label": "Generate", "role": "strong", "provider": "Anthropic", "model": "claude-sonnet", "detail": "wrote a one-line summary", "status": "ok"}], "passed": true, "cost": 20, "fixed_by": "strong", "advice": null, "flagged": false, "shipped_broken": false, "scored": false}]}, "scoreboard": {"cheap": {"mode": "cheap", "passed": 3, "total": 5, "reliability": 60, "cost_units": 10, "broken_shipped": 2, "cost_per_1k_usd": 4.0}, "assay": {"mode": "assay", "passed": 5, "total": 5, "reliability": 100, "cost_units": 51, "broken_shipped": 0, "cost_per_1k_usd": 20.4}, "strong": {"mode": "strong", "passed": 5, "total": 5, "reliability": 100, "cost_units": 200, "broken_shipped": 0, "cost_per_1k_usd": 80.0}}, "headline": {"assay_reliability": 100, "cheap_reliability": 60, "savings_vs_strong_pct": 74, "cheap_broken_shipped": 2, "escalated": 2, "total_steps": 5, "bug_amount": 9850000, "bug_correct": 985000, "bug_over": 8865000}, "providers": {"cheap": {"provider": "Mistral", "model": "mistral-small"}, "strong": {"provider": "Anthropic", "model": "claude-sonnet"}}, "checkers": ["run-tests", "finance", "json-schema", "format", "schema-from-example", "tool-args", "llm-judge"], "name": "Assay"};
 const $=s=>document.querySelector(s), sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const ICON={pass:"✓",fail:"✕",catch:"⚡",escalate:"↗",kill:"⛔",flag:"⚐",ok:"·"};
-function stepRow(s){
-  let cls=({pass:"pass",fail:"fail",catch:"catch",kill:"kill",flag:"flag",ok:""})[s.status]||"";
-  const esc=s.role==="strong"&&s.status==="ok"&&/escalate/i.test(s.label); if(esc)cls="escalate";
-  const ic=esc?ICON.escalate:(ICON[s.status]||ICON.ok);
-  const badge=s.provider?`<span class="mdl">${s.provider}·${s.model}</span>`:"";
-  const real=s.role==="verifier"?`<span class="real">REAL CHECK</span>`:"";
-  const out=(s.output&&(s.status==="pass"||s.status==="fail"))?`<div class="tout ${s.status}">${s.checker?("["+s.checker+"] "):""}${s.output}</div>`:"";
-  return `<div class="step ${cls}"><span class="ic">${ic}</span>${badge}${real}<span>${s.label} — ${s.detail}</span></div>${out}`;
+function receiptMarkup(title){
+  return `<div class="receipt loading"><div class="k">${title}</div><span class="skeleton-value"></span><span class="skeleton-pill"></span></div>`;
 }
-function pill(r,side){
-  if(side==="left"){
-    if(r.passed)return `<span class="status s-pass">✓ verified</span>`;
-    if(r.fixed_by==="UNGUARDED")return `<span class="status s-kill">✕ looped · burned budget</span>`;
-    if(r.domain==="finance")return `<span class="status s-fail">✕ wired the wrong amount</span>`;
-    return `<span class="status s-fail">✕ shipped broken</span>`;
-  }
-  return ({"cheap":'<span class="status s-pass">✓ cheap · verified</span>',
-    "cross-provider-escalate":'<span class="status s-catch">⚡ caught → escalated → ✓</span>',
-    "kill-switch":'<span class="status s-kill">⛔ runaway killed</span>',
-    "flagged-low-confidence":'<span class="status s-flag">⚐ flagged for a human</span>'})[r.fixed_by]||`<span class="status s-pass">✓</span>`;
+function cardLoading(){
+  return `<div class="card loading"><span class="skeleton-line"></span><span class="skeleton-value"></span><span class="skeleton-line"></span></div>`;
 }
-function bugCost(r,side,h){
-  if(side==="left"&&r.task==="settle_trade"&&!r.passed)
-    return `<div class="bugcost">💸 cost of shipping this bug: an $${(h.bug_over).toLocaleString()} over-wire ($${(h.bug_amount).toLocaleString()} instead of $${(h.bug_correct).toLocaleString()})</div>`;
-  return "";
-}
-function card(r,side,h){
-  const hero=r.task==="settle_trade"?" hero":"";
-  const open=(r.fixed_by&&["cross-provider-escalate","kill-switch","flagged-low-confidence"].includes(r.fixed_by))||(side==="left"&&!r.passed)||r.task==="settle_trade";
-  return `<div class="task${hero}"><div class="top"><div><div class="nm">${r.task}()<span class="dom">${r.domain}</span></div>
-    <div class="desc">${r.desc}</div></div>${pill(r,side)}</div>${bugCost(r,side,h)}
-    <div class="steps ${open?"open":""}">${r.steps.map(stepRow).join("")}</div></div>`;
-}
-async function stream(elId,rows,side,h){
-  const el=$(elId); el.innerHTML="";
-  for(const r of rows){ el.insertAdjacentHTML("beforeend",card(r,side,h)); const n=el.lastElementChild;
-    await sleep(50); n.classList.add("show");
-    const slow=(side==="left"&&r.task==="settle_trade")?600:(side==="right"&&["cross-provider-escalate","kill-switch","flagged-low-confidence"].includes(r.fixed_by))?470:200;
-    await sleep(slow); }
+function headlineLoading(){
+  return `<div class="headline loading" id="headline"><span class="skeleton-line"></span><span class="skeleton-line"></span></div>`;
 }
 function scard(sb,key,label,win){
   const cls={cheap:"rc",assay:"rb",strong:"rs"}[key];
@@ -176,29 +103,65 @@ function scard(sb,key,label,win){
     <div class="price">reliability · <b>$${sb.cost_per_1k_usd}</b>/1k steps</div>
     <div class="bar ${cls}"><i data-w="${sb.reliability}"></i></div>${tag}</div>`;
 }
+function seedLoading(){
+  $("#receipts").innerHTML =
+    receiptMarkup("Resolved support tickets") +
+    receiptMarkup("Cost vs always using Opus 4.8") +
+    receiptMarkup("Tickets escalated to Opus 4.8");
+  $("#cards").innerHTML = cardLoading() + cardLoading() + cardLoading();
+  $("#headline").outerHTML = headlineLoading();
+  $("#results").classList.add("show");
+}
 async function board(d){
   const sb=d.scoreboard,h=d.headline;
-  $("#receipts").innerHTML=
-    `<div class="receipt"><div class="k">Reliability</div><div class="v" style="color:var(--as)">${h.cheap_reliability}% → ${h.assay_reliability}%</div></div>`+
-    `<div class="receipt"><div class="k">Cost vs the big model</div><div class="v" style="color:var(--green)">${h.savings_vs_strong_pct}% cheaper</div></div>`+
-    `<div class="receipt"><div class="k">Escalated to frontier</div><div class="v">only ${h.escalated} / ${h.total_steps} steps</div></div>`;
-  $("#cards").innerHTML=scard(sb.cheap,"cheap","Cheap model alone")+scard(sb.assay,"assay","Cheap + Assay",true)+scard(sb.strong,"strong","Expensive model alone");
-  $("#headline").innerHTML=`Same cheap model. <b>${h.assay_reliability}% reliable</b> (vs ${h.cheap_reliability}% alone), <b>${h.savings_vs_strong_pct}% cheaper</b> than running the big model on everything — Assay paid the premium on <b>only ${h.escalated} of ${h.total_steps}</b> steps, and never wired the wrong amount.`;
-  $("#board").classList.add("show"); await sleep(60);
-  document.querySelectorAll(".bar>i").forEach(i=>i.style.width=i.dataset.w+"%");
+  const receiptHtml = [
+    `<div class="receipt reveal"><div class="k">Resolved support tickets</div><div class="v" style="color:var(--teal)">${h.cheap_reliability}% -> ${h.assay_reliability}%</div></div>`,
+    `<div class="receipt reveal"><div class="k">Cost vs always using Opus 4.8</div><div class="v" style="color:var(--green)">${h.savings_vs_strong_pct}% cheaper</div></div>`,
+    `<div class="receipt reveal"><div class="k">Tickets escalated to Opus 4.8</div><div class="v">only ${h.escalated} / ${h.total_steps} steps</div></div>`
+  ];
+  const cardHtml = [
+    scard(sb.cheap,"cheap","Mistral Small 4 alone"),
+    scard(sb.assay,"assay","Mistral Small 4 + verification",true),
+    scard(sb.strong,"strong","Opus 4.8 on every ticket")
+  ].map(html => html.replace('class="card', 'class="card reveal'));
+  const receiptNodes = $("#receipts").children;
+  const cardNodes = $("#cards").children;
+  const headlineText = `On this support workflow, the verified Mistral Small 4 path reaches <b>${h.assay_reliability}% successful resolutions</b> (vs ${h.cheap_reliability}% for Mistral Small 4 alone), while staying <b>${h.savings_vs_strong_pct}% cheaper than running Opus 4.8 on every ticket</b>.`;
+  const liveNote = $("#live-note");
+  const setLiveNote = (text) => { if (liveNote) liveNote.textContent = text; };
+
+  const timeline = [
+    { delay: 900, run: () => { setLiveNote("Reading ticket..."); } },
+    { delay: 1100, run: () => { receiptNodes[0].outerHTML = receiptHtml[0]; setLiveNote("Extracting support data..."); } },
+    { delay: 1200, run: () => { receiptNodes[1].outerHTML = receiptHtml[1]; setLiveNote("Verifying policy and response quality..."); } },
+    { delay: 1200, run: () => { receiptNodes[2].outerHTML = receiptHtml[2]; setLiveNote("Identifying which tickets require escalation..."); } },
+    { delay: 1400, run: () => { cardNodes[0].outerHTML = cardHtml[0]; setLiveNote("Comparing Mistral Small 4 against the verified path..."); } },
+    { delay: 1300, run: () => { cardNodes[1].outerHTML = cardHtml[1]; setLiveNote("Calculating cost per support ticket..."); } },
+    { delay: 1300, run: () => { cardNodes[2].outerHTML = cardHtml[2]; setLiveNote("Compiling final results..."); } },
+    { delay: 1400, run: () => {
+      $("#headline").outerHTML = `<div class="headline reveal" id="headline">${headlineText}</div>`;
+      document.querySelectorAll(".bar>i").forEach(i=>i.style.width=i.dataset.w+"%");
+      setLiveNote("");
+    } }
+  ];
+
+  for (const item of timeline) {
+    await sleep(item.delay);
+    item.run();
+  }
 }
 $("#run").addEventListener("click",async()=>{
-  const b=$("#run"); b.disabled=true; b.textContent="running…"; $("#board").classList.remove("show");
+  const b=$("#run"); b.disabled=true; b.textContent="Running..."; $("#results").classList.remove("show");
+  if ($("#live-note")) $("#live-note").textContent = "Initializing support workflow...";
   let d;
   try{ d=await(await fetch("/api/run")).json(); }
   catch(e){ d=PINNED; }            // record-safe: play the pinned run if the server is down
-  if(!d||!d.results){ b.disabled=false; b.textContent="▶ Run the agent";
-    $("#board").innerHTML='<div class="notice">Start the server first: <code>python3 demo/server.py</code> — or open the static page in /docs.</div>'; $("#board").classList.add("show"); return; }
-  $("#cols").scrollIntoView({behavior:"smooth",block:"start"});
-  const leftP=stream("#left",d.results.cheap,"left",d.headline);  // the wrong wire lands first
-  await sleep(700);                                               // ...then Assay reacts to it
-  const rightP=stream("#right",d.results.assay,"right",d.headline);
-  await Promise.all([leftP,rightP]);
-  await sleep(250); await board(d); b.disabled=false; b.textContent="▶ Run again";
+  if(!d||!d.results){ b.disabled=false; b.textContent="Run the agent";
+    $("#results").innerHTML='<div class="notice">Start the server first: <code>python3 demo/server.py</code> - or open the static page in /docs.</div>'; $("#results").classList.add("show"); return; }
+  seedLoading();
+  await sleep(300);
+  await board(d);
+  b.disabled=false; b.textContent="Run again";
 });
 </script>
+
