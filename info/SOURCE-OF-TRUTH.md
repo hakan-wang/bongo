@@ -122,7 +122,7 @@ mistakes. Without Assay it just fails. With Assay: save money AND stay reliable.
   solving zero tasks** (faked success) — the market just learned it can't trust its own evals.
 - (Re-verify fast-changing figures near the event. Full table in `docs/early-writeup.md`.)
 
-## 11. Business model (from GTM.md)
+## 11. Business model (from docs/internal/GTM.md)
 
 - **Pay-from-savings:** Assay takes ~**20% of the AI spend it saves you**. Save you
   nothing → you pay nothing. Easiest yes, instant ROI, no buyer risk.
@@ -171,7 +171,7 @@ of the cost.** Headline: *"Pro-level reliability at Flash-level price."*
 
 ## Document status (read me)
 
-- ✅ **Canonical / current:** this file, plus `VISION.md`, `PLAN.md`, `GTM.md`,
+- ✅ **Canonical / current:** this file, plus `docs/internal/VISION.md`, `docs/internal/PLAN.md`, `docs/internal/GTM.md`,
   `reliability.py`, `proxy.py`.
 - 📚 **Background research (current):** the `info/` folder (judges, competitors, technical
   playbook, model landscape, positioning, wow-metric, pitch) — being filled by research.

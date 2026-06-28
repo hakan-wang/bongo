@@ -2,7 +2,7 @@
 
 > **Purpose:** This is the jury playbook for the "Paris Builds" 36h hackathon (Unaite × Y Combinator, Software-for-Agents track). It tells you **who is judging**, the **one anxiety they all share**, **what makes each judge lean in**, and the **3–4 concrete moves** that win this specific room.
 >
-> Read this alongside `info/SOURCE-OF-TRUTH.md` (the canonical product doc) and `VISION.md`. Nothing here changes the product — it's about aiming the same product at these specific people. Prize: a YC interview + €20,000.
+> Read this alongside `info/SOURCE-OF-TRUTH.md` (the canonical product doc) and `docs/internal/VISION.md`. Nothing here changes the product — it's about aiming the same product at these specific people. Prize: a YC interview + €20,000.
 
 ---
 
@@ -50,7 +50,7 @@ Use this to tailor a sentence, a demo beat, or a Q&A answer to whoever asks.
 | **Mistral** | Deterministic catching of **tool-call / schema** failures — the exact liability they live with — on a cheap model, with that one bad step escalated. | *"Tool-calling is a liability. We validate the tool call deterministically and retry-or-escalate just that step — no AI judging AI."* | They'll test the core bet. Be precise: verification is cheap **for checkable steps** (schema, code, tool args). Don't claim it works on open-ended taste. |
 | **Genesis** | That Assay turns "evaluation is the bottleneck" into a solved, in-loop step — cheap verification that actually catches silent failure. | *"Evaluation is the bottleneck — so we made verification cheap and put it in the live loop, not in a notebook after the fact."* | Cite the cheap-verifier evidence (Weaver, cheap structural detectors beating LLM-judges). Don't claim a generic LLM judge solves it — they'll know that's false. |
 | **QRT** | **Reproducibility + cost + audit:** a "show me the exact bad step, the verdict, and what we did about it" panel; per-(model × task) reliability scores; measured cost savings. | *"Every intervention is logged and replayable — here's the step that went wrong, the check that caught it, and the fix. Reproducible and auditable."* | This is your warmest judge (advisor already validated). Give him the audit/replay panel and the cross-provider reliability DB explicitly. |
-| **Hugging Face / OpenArm** | Open core, vendor-neutral, self-hostable, no lock-in. | *"Drop-in proxy, keep your own key, open core, runs on open/Chinese models too — zero lock-in."* | Don't sound like a closed SaaS gateway. Emphasize self-host + open core (see `GTM.md`). |
+| **Hugging Face / OpenArm** | Open core, vendor-neutral, self-hostable, no lock-in. | *"Drop-in proxy, keep your own key, open core, runs on open/Chinese models too — zero lock-in."* | Don't sound like a closed SaaS gateway. Emphasize self-host + open core (see `docs/internal/GTM.md`). |
 
 ---
 
@@ -81,7 +81,7 @@ This is the question Dessaigne *will* ask. Don't hand-wave. Have the receipts re
 > ⚠️ **Do NOT** anchor this to a specific EU AI Act deadline. The "independent assessment is coming" tailwind is real and worth one line, but the specific timing has slipped — use it as direction, not as a dated mandate.
 
 ### Move 4 — Close on cost as PROOF, not as the pitch
-End with the measured result: **cheap model + Assay ≈ expensive-model reliability at a fraction of the cost** (the `reliability.py` cascade: cheap=1, strong=50; escalate **only the bad step**). Show it as **cost-per-completed-task**, not per-token, so the number survives scrutiny. Tie it to the business model: **pay-from-savings** (`GTM.md`) — "save you nothing, you pay nothing" is the easiest yes a YC partner can imagine.
+End with the measured result: **cheap model + Assay ≈ expensive-model reliability at a fraction of the cost** (the `reliability.py` cascade: cheap=1, strong=50; escalate **only the bad step**). Show it as **cost-per-completed-task**, not per-token, so the number survives scrutiny. Tie it to the business model: **pay-from-savings** (`docs/internal/GTM.md`) — "save you nothing, you pay nothing" is the easiest yes a YC partner can imagine.
 
 **Why it wins:** cost is the *proof* that the reliability works, and pay-from-savings is the cleanest ROI story. It lands the company question (Dessaigne) and the cost/audit question (QRT) at the same time. Leading with cost would have lost the room; closing with it wins it.
 
@@ -106,4 +106,4 @@ If a judge remembers one sentence, make it that one. It positions Assay against 
 
 ---
 
-*Cross-references: `info/SOURCE-OF-TRUTH.md` (canonical), `VISION.md`, `GTM.md` (business model + open core), `reliability.py` (the cascade you're demoing), and the demo plan in `SOURCE-OF-TRUTH.md` §15–16.*
+*Cross-references: `info/SOURCE-OF-TRUTH.md` (canonical), `docs/internal/VISION.md`, `docs/internal/GTM.md` (business model + open core), `reliability.py` (the cascade you're demoing), and the demo plan in `SOURCE-OF-TRUTH.md` §15–16.*

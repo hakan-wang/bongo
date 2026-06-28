@@ -14,7 +14,7 @@ step's cost + quality, so it also tells you **where you're overpaying** and cuts
 
 > One line: **"Run the cheap model. Assay makes it reliable, and cuts your bill."**
 
-> 👷 **Building? Read [`../TEAM-BUILD-PLAN.md`](../TEAM-BUILD-PLAN.md).** It has the work split
+> 👷 **Building? Read [`../docs/internal/TEAM-BUILD-PLAN.md`](../docs/internal/TEAM-BUILD-PLAN.md).** It has the work split
 > (Håkan/Claude-side vs **Filip — START HERE**) and idiot-proof step-by-step tasks. **Filip:
 > open that file, scroll to "FILIP — START HERE".**
 
@@ -22,7 +22,7 @@ step's cost + quality, so it also tells you **where you're overpaying** and cuts
 
 1. **Canonical / the truth:** [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) — if anything
    anywhere conflicts, this wins. Primary source = **Håkan** (founder).
-2. **Canonical supporting (repo root):** `VISION.md`, `PLAN.md`, `GTM.md`, plus the code
+2. **Canonical supporting:** `docs/internal/VISION.md`, `docs/internal/PLAN.md`, `docs/internal/GTM.md`, plus the code
    (`reliability.py`, `proxy.py`).
 3. **Background research (this folder):** the deep-dives below. They all defer to the
    Source of Truth.
