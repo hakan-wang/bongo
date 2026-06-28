@@ -19,7 +19,10 @@ import scenarios  # noqa: E402
 data = json.dumps(scenarios.run_all())
 idx = os.path.join(HERE, "index.html")
 html = open(idx).read()
-html, n = re.subn(r"const PINNED = .*?;", lambda m: f"const PINNED = {data};", html, count=1)
+# Match the WHOLE PINNED line (greedy .* stops at the newline, no DOTALL). A non-greedy
+# `.*?;` stops at the first `;` and leaves any trailing garbage behind, which silently
+# corrupts the inline script (dead "Run" button). Greedy-to-EOL is self-healing.
+html, n = re.subn(r"const PINNED = .*", lambda m: f"const PINNED = {data};", html, count=1)
 if n != 1:
     sys.exit("could not find `const PINNED = ...;` in demo/index.html")
 open(idx, "w").write(html)
