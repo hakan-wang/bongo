@@ -1,4 +1,4 @@
-# Assay (working name)
+# Assay
 
 ## One line
 **Run the cheap model. Assay makes it reliable, and cuts your bill.**

@@ -61,5 +61,3 @@ confidence — we lead with the deterministic ones).
   milestone, not done yet.
 - `localhost:8129` shown in some screens is **aspirational** — the real local endpoint is
   `http://localhost:8129/v1`.
-
-See `TEAM-BUILD-PLAN.md` for what's left and who's building it.

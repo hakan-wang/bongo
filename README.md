@@ -82,8 +82,6 @@ See **[`QUICKSTART.md`](QUICKSTART.md)**.
 
 ## Repo map
 - **[`positioning/`](positioning/)** — `POSITIONING.md`, the **`VIDEO-SCRIPT.md`** (≤5 min), `PITCH-DECK.md`.
-- **[`NIGHT-BUILD-PLAN.md`](NIGHT-BUILD-PLAN.md)** — the build checklist + scope.
-- **[`TEAM-BUILD-PLAN.md`](TEAM-BUILD-PLAN.md)** — work split (Filip's tasks).
 - `reliability.py`, `proxy.py` — the original reliability loop + cost/caching proxy.
 
 ## Honest status
