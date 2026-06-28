@@ -5,7 +5,7 @@
 > around Assay and pins down the *exact* lane Assay owns that nobody else does.
 >
 > It builds on the canonical docs — `info/SOURCE-OF-TRUTH.md` (§8 objections, §9 the stage
-> line) and `VISION.md`. If anything here conflicts with SOURCE-OF-TRUTH, that file wins.
+> line) and `docs/internal/VISION.md`. If anything here conflicts with SOURCE-OF-TRUTH, that file wins.
 > The reliability loop this doc defends is the one already coded in `reliability.py`
 > (cheap → retry cheap → escalate to strong, deterministic checkers, no AI judging AI).
 
@@ -60,7 +60,7 @@ observability or pre-ship testing). Two have edged toward intervention — note 
 - **Baserun** (W26) — eval/observability.
 - **Coval, AgentHub, Fulcrum, Lemma** — agent testing / eval / observability.
 - Also in the earlier docs: **Chronicle, Respan, Arga, Roark** — dev tools to test your
-  OWN agent *before* shipping (see `VISION.md` objection §). Different lane (pre-ship vs
+  OWN agent *before* shipping (see `docs/internal/VISION.md` objection §). Different lane (pre-ship vs
   runtime).
 
 **Why this matters for the pitch:** "we catch silent failures" alone no longer fully

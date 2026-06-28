@@ -3,7 +3,7 @@
 > **What this doc is.** A decisive synthesis of the POSITIONING council (a multi-advisor
 > debate on Assay's one-sentence pitch). It answers one question: **what is the first sentence
 > out of our mouths on stage, and why.** Read this with `info/SOURCE-OF-TRUTH.md` (the product)
-> and `VISION.md` open — this doc refines *how we say it*, it does not change *what we built*.
+> and `docs/internal/VISION.md` open — this doc refines *how we say it*, it does not change *what we built*.
 >
 > _Audience: the whole team, including non-technical readers. If you only read one section,
 > read "The Verdict" and "The One Tension You Must Know."_
@@ -44,7 +44,7 @@ generation?" instead of dying on it.
 
 ### How it relates to our current canonical line
 
-`SOURCE-OF-TRUTH.md §1` and `VISION.md` currently lead with **"Run the cheap model. Assay makes
+`SOURCE-OF-TRUTH.md §1` and `docs/internal/VISION.md` currently lead with **"Run the cheap model. Assay makes
 it reliable, and cuts your bill."** That line is the right *product*, but the council says the
 **order of emphasis on stage is wrong**: "cuts your bill" / "cheap model" first triggers the
 "this is just a router/FinOps tool" reflex. The verdict keeps every element of the canonical
@@ -70,7 +70,7 @@ Ranked. Each is safe to say; pick by audience.
 **Backup 2 — the tightest version of our existing line (best for a fast/noisy room or a CEO).**
 > *"Assay makes a cheap model behave like an expensive one — and we fix it live, across any provider."*
 
-- **Lands with:** the YC GP and any outcome-focused buyer. Closest to `VISION.md`'s framing, so
+- **Lands with:** the YC GP and any outcome-focused buyer. Closest to `docs/internal/VISION.md`'s framing, so
   it's consistent with the rest of our materials.
 - **Use when:** you have five seconds, or the listener is non-technical.
 
