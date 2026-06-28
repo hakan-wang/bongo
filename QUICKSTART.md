@@ -53,4 +53,5 @@ Use this first if you want to preview the flow without keys. The full real-provi
 
 - The main demo uses pinned outputs so the flow is deterministic on stage.
 - The verifiers and scoreboard calculations are real.
-- The gateway path exists, but the default demo is optimized for a stable live presentation.
+- `demo/gateway.py` is a working mock integration path.
+- Pointing Assay at an arbitrary production workflow end-to-end is the next milestone, not the current shipped state.

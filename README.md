@@ -23,6 +23,8 @@ If the answer is no, Assay:
 
 This is intentionally not a generic observability tool and not a model router. The core wedge is step-level verification plus selective escalation.
 
+The long-term moat is the cross-provider reliability data that compounds as the system sees more workflows and failed steps.
+
 ## Demo summary
 
 The demo is a support-workflow-style interface backed by a deterministic Python engine.
@@ -59,9 +61,9 @@ This repo is honest about what is deterministic and what is staged for the demo.
 - [`demo/server.py`](demo/server.py) serves the UI and `/api/run`
 - [`demo/scenarios.py`](demo/scenarios.py) contains the workflow engine, verifiers, and scoreboard
 - [`demo/gateway.py`](demo/gateway.py) is the mocked product-style gateway integration path
+- [`reliability.py`](reliability.py) contains the original reliability loop
+- [`proxy.py`](proxy.py) contains the original proxy and cost/caching path
 - [`QUICKSTART.md`](QUICKSTART.md) contains fast local run instructions
-
-The rest of the root-level markdown files are planning, positioning, and hackathon support material.
 
 ## How to run locally
 
@@ -110,14 +112,9 @@ Assay demonstrates a third path:
 
 That gives a sharper product wedge than generic token tracking or generic AI observability.
 
-## Submission notes
+## Honest status
 
-This repository is public and contains the full codebase for the current hackathon MVP, including:
-
-- the working demo UI
-- the deterministic verification engine
-- the mock gateway path
-- the supporting positioning and build documents used during the project
+This repository is public and contains the runnable hackathon MVP. The main demo is deterministic and stage-safe, while `demo/real_proof.py` is the path for a genuine cross-provider proof when keys are available.
 
 ## License
 
