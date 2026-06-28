@@ -88,6 +88,8 @@ class Handler(BaseHTTPRequestHandler):
         opts = body.get("assay", {}) or {}
         checker = opts.get("checker", "format")         # zero-config default
         spec = opts.get("spec", [])                     # only some checkers use this
+        if checker not in scenarios.CHECKERS:
+            return self._send(400, {"error": f"unknown checker '{checker}'; choose from {list(scenarios.CHECKERS)}"})
         model = body.get("model", "mistral-small")
         msgs = body.get("messages", [])
         if not isinstance(msgs, list):

@@ -40,7 +40,7 @@
 ### 6. On-screen overlays [~40 min]
 - [ ] 6.1 "COST OF SHIPPING THIS BUG: $X" counter on the finance catch
 - [ ] 6.2 Live escalation-rate counter ("2 of 5 escalated") — pre-empts #1 objection
-- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 60% → Assay 100%, 78% cheaper — as RECEIPTS at the end only
+- [ ] 6.3 Cost-per-COMPLETED-task line (not per-token); scoreboard cheap 60% → Assay 100%, 74% cheaper — as RECEIPTS at the end only
 
 ### 7. Record + cut the video [~90 min] [GATEKEEPER]
 - [ ] 7.1 Single-take finance catch, cold-open in first 10s (no logo intro)

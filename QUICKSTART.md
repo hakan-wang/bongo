@@ -12,11 +12,11 @@ Everything below runs offline (Python 3, stdlib only — **no `pip install`, no 
 ## 1. See the demo (30 seconds, no keys)
 ```bash
 python3 demo/server.py
-# open http://localhost:8200  and click "Run the demo"
+# open http://localhost:8200  and click "Run the agent"
 ```
 A cheap agent runs a finance step and silently wires the wrong amount (a 10× notional). Assay
 catches it against the trade's real arithmetic, walks the recovery ladder (retry → escalate
-cross-provider), and ends correct. Scoreboard: cheap **60%** → **cheap + Assay = 100%, 78% cheaper**.
+cross-provider), and ends correct. Scoreboard: cheap **60%** → **cheap + Assay = 100%, 74% cheaper**.
 
 ## 2. See a real cross-provider catch (needs keys)
 ```bash
@@ -59,7 +59,7 @@ confidence — we lead with the deterministic ones).
 - `demo/gateway.py` is a working **mock** of the connect path; flip `ASSAY_REAL=1` + keys to
   make the calls real. Pointing it at an arbitrary production workflow end-to-end is the next
   milestone, not done yet.
-- `api.bongo.dev` shown in some screens is **aspirational** — the real local endpoint is
+- `localhost:8129` shown in some screens is **aspirational** — the real local endpoint is
   `http://localhost:8129/v1`.
 
 See `TEAM-BUILD-PLAN.md` for what's left and who's building it.

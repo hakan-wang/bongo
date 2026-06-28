@@ -6,7 +6,7 @@ against the trade's real arithmetic, walks the recovery ladder, and ends correct
 ## Run it
 ```bash
 python3 demo/server.py
-# open http://localhost:8200  and click "Run the demo"
+# open http://localhost:8200  and click "Run the agent"
 ```
 No dependencies (Python stdlib only). Works offline.
 
@@ -27,10 +27,10 @@ No dependencies (Python stdlib only). Works offline.
 | | reliability | $/1k | broken shipped |
 |---|---|---|---|
 | Cheap alone | 60% | cheapest | 3 |
-| **Cheap + Assay** | **100%** | **78% cheaper** | **0** |
+| **Cheap + Assay** | **100%** | **74% cheaper** | **0** |
 | Expensive alone | 100% | most expensive | 0 |
 
-→ **100% reliable, 78% cheaper than the big model.** Cheap alone silently shipped 2 broken results (incl. a wrong wire).
+→ **100% reliable, 74% cheaper than the big model.** Cheap alone silently shipped 2 broken results (incl. a wrong wire).
 
 ## Next (see ../BUILD-PLAN.md)
 - [P1] real-API live mode (`ASSAY_REAL=1`)

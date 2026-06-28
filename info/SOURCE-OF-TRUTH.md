@@ -2,7 +2,7 @@
 
 > 🔒 **For the hackathon, the LOCKED pitch positioning is canonical in [`../positioning/POSITIONING.md`](../positioning/POSITIONING.md):**
 > Assay = *"Keep your model. We verify it against reality."* — finance-anchored video, Mistral→Anthropic escalation,
-> numbers **cheap 60% → 100%, 78% cheaper, escalated 2/5**. Some sections below reflect an earlier cost-first framing; positioning wins.
+> numbers **cheap 60% → 100%, 74% cheaper, escalated 2/5**. Some sections below reflect an earlier cost-first framing; positioning wins.
 
 > **This is the single canonical doc. If anything elsewhere conflicts with this, this wins.**
 > Primary source = **Håkan** (founder, most current context). Older docs that describe a

@@ -20,6 +20,18 @@ You keep your model. You keep your price. You stop shipping wrong answers.
 > ground-truth verification + per-step pinpoint + cross-provider escalation** — the one thing a
 > single model lab structurally won't ship (Anthropic will never escalate your failed step to Mistral).
 
+## Why not X?
+
+|  | cross-provider | runtime / in-loop | per-step correctness | active fix |
+|---|:---:|:---:|:---:|:---:|
+| Routers — OpenRouter, Vercel AI Gateway | ✓ | ✕ | ✕ | ✕ — pick a model up front; retry only on hard errors, never a wrong-but-200 answer |
+| Observability — Datadog, Arize | ✓ | tells you *after* | ✓ | ✕ — reports the failure, doesn't fix it |
+| Guardrails — Portkey | ✕ | ✓ | ✓ | ✕ — verifies but won't regenerate |
+| Eval — Raindrop, Galileo | ✓ | offline | ✓ | ✕ — fixes offline / canned override |
+| **Assay** | **✓** | **✓** | **✓** | **✓ — catches the wrong step and fixes only it, live, across providers** |
+
+The loop is copyable in a month; the **cross-provider per-(model × task) reliability data that compounds with traffic** is not. (More: [`info/competitors-and-differentiation.md`](info/competitors-and-differentiation.md).)
+
 **Track:** Software for Agents · **Paris Builds** (Unaite × Y Combinator).
 
 ---
@@ -40,7 +52,7 @@ the trade's real arithmetic, walks the recovery ladder, and ends correct. Then t
 | | reliability | cost | result |
 |---|---|---|---|
 | Cheap model alone | **60%** | cheapest | shipped 2 broken (incl. a wrong wire) |
-| **Cheap + Assay** | **100%** | **78% cheaper than the big model** | 0 broken |
+| **Cheap + Assay** | **100%** | **74% cheaper than the big model** | 0 broken |
 | Expensive model alone | 100% | most expensive | right but overkill |
 
 Assay paid the frontier premium on **only 2 of 5** steps. Print the numbers yourself:
@@ -51,7 +63,7 @@ python3 demo/scenarios.py
 ## How it works
 
 - **`demo/scenarios.py`** — the engine. Real deterministic checkers (`run-tests` executes code +
-  unit tests; `finance` does the arithmetic against planted ground truth; `json-schema`), the
+  unit tests; `finance` **recomputes** the notional from the source figures, `units × price`; `json-schema`), the
   catch → recovery-ladder loop, the kill-switch, the honest low-confidence flag, and the scoreboard.
   Model outputs are **pinned** so the demo is reproducible; **the verification is real** (we say so out loud).
 - **`demo/server.py` + `demo/index.html`** — the dashboard you see (vanilla HTML/CSS/JS, no deps).
@@ -77,3 +89,6 @@ See **[`QUICKSTART.md`](QUICKSTART.md)**.
 The on-stage demo's model outputs are **pinned** (deterministic → it always fires); the
 **verification is real**. `demo/real_proof.py` is the un-pinned, genuinely-real cross-provider
 proof. Pointing Assay at an arbitrary production workflow end-to-end is the next milestone.
+
+## License
+MIT — see [LICENSE](LICENSE).

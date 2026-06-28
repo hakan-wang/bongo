@@ -51,6 +51,8 @@ def _check_finance(output, gt):
     """Recompute the notional from the SOURCE figures (units x price) and check the model's
     tool call against it — real arithmetic, not constant-vs-constant.
     gt = {'units', 'price', 'ccy'}."""
+    if not isinstance(gt, dict) or "units" not in gt or "price" not in gt:
+        return False, "finance checker needs spec={units, price, ccy}"
     expected = round(gt["units"] * gt["price"], 2)
     try:
         obj = json.loads(output)

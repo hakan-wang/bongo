@@ -1,0 +1,5 @@
+# Assay runs on the Python 3 standard library only — no install needed for the demo,
+# the dashboard, the gateway, or scenarios.py.
+#
+# The OpenAI-compatible CONNECT example in QUICKSTART.md uses your own client SDK
+# (e.g. `pip install openai`); Assay itself calls providers via urllib (stdlib).

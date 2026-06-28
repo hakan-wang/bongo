@@ -25,7 +25,7 @@
 - *(Embed the trace screenshot: red step → escalation badge → green.)*
 
 ## Slide 5 — Demo proof (Demo /17)
-- Scoreboard: cheap-alone **60%** → Assay **100%**, **78% cheaper** than frontier-everywhere.
+- Scoreboard: cheap-alone **60%** → Assay **100%**, **74% cheaper** than frontier-everywhere.
 - Escalation counter: "2 of 5 escalated."
 - ~15s coding red→green pytest still — "ground truth, not an opinion."
 - *(Mirror of the video money-shot; judges who skim the deck after the video see the same artifact.)*
