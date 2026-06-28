@@ -19,9 +19,9 @@ import sys
 import providers
 import scenarios
 
-CHEAP = {"provider": "Mistral", "model": os.environ.get("PL_CHEAP_MODEL", "mistral-small-latest")}
+CHEAP = {"provider": "Mistral", "model": os.environ.get("ASSAY_CHEAP_MODEL", "mistral-small-latest")}
 USE_ANTHROPIC = bool(os.environ.get("ANTHROPIC_API_KEY"))
-STRONG = ({"provider": "Anthropic", "model": os.environ.get("PL_STRONG_MODEL", "claude-sonnet-4-5")}
+STRONG = ({"provider": "Anthropic", "model": os.environ.get("ASSAY_STRONG_MODEL", "claude-sonnet-4-5")}
           if USE_ANTHROPIC else
           {"provider": "OpenAI", "model": os.environ.get("PL_STRONG_MODEL", "gpt-4o")})
 
@@ -77,8 +77,11 @@ def main():
         return
 
     print(f"\n[2] Assay caught a SILENT failure -> escalating THIS step across providers")
-    print(f"[3] STRONG model ({STRONG['provider']} / {STRONG['model']}) re-generating...")
-    strong_code = gen_strong(p, task, mock)
+    print(f"[3] STRONG model ({STRONG['provider']} / {STRONG['model']}) re-generating with the reason...")
+    # informed escalation: tell the strong model exactly what the cheap one got wrong
+    guided = (f"{p}\n\n[A previous attempt FAILED the tests.]\nIt produced:\n{cheap_code}\n"
+              f"Failing check: {detail}\nReturn corrected code that passes the tests.")
+    strong_code = gen_strong(guided if not mock else p, task, mock)
     ok2, detail2 = scenarios.verify(strong_code, task["spec"], "run-tests")
     print(f"    -> Assay verify (real tests): {'PASS' if ok2 else 'FAIL'} — {detail2}")
     print(f"\n=== RESULT: {CHEAP['provider']} failed -> escalated to {STRONG['provider']} -> "

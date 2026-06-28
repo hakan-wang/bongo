@@ -32,34 +32,64 @@ def _gen(provider, prompt, mock_text):
     return mock_text
 
 
+def _guidance(prompt, prev, reason):
+    """The recovery prompt: tell the next model exactly what failed the check, so it can fix it.
+    This is the difference between a router (blind retry) and Assay (informed recovery)."""
+    return (f"{prompt}\n\n[An automated check REJECTED a previous attempt.]\n"
+            f"Previous output: {prev}\nWhy it failed the check: {reason}\n"
+            f"Return a corrected answer that will pass the check.")
+
+
+def _mock_strong(checker, spec):
+    """A deterministic 'good' answer the given checker will pass — so the mock escalation
+    visibly recovers to green for ANY checker, not just 'format'."""
+    if checker in ("json-schema", "tool-args") and isinstance(spec, list):
+        return json.dumps({f: "ok" for f in spec})
+    if checker == "finance" and isinstance(spec, dict):
+        return json.dumps({"amount": round(spec.get("units", 0) * spec.get("price", 0), 2),
+                           "ccy": spec.get("ccy", "USD")})
+    return '{"answer": "corrected by the strong model"}'
+
+
 def run_assay(messages, checker, spec):
+    """The real reliability loop: cheap -> verify -> retry-cheap-with-guidance -> escalate
+    cross-provider-with-guidance -> re-verify. Mock outputs are staged so the loop plays
+    without keys; with ASSAY_REAL=1 + keys, every generate is a real provider call."""
     prompt = messages[-1].get("content", "") if messages and isinstance(messages[-1], dict) else ""
     trace, cost = [], 0
 
-    # 1) cheap model generates. In mock mode it returns a deliberately-thin output so the
-    #    zero-config `format` checker trips — proving the catch loop without any keys.
-    cheap_out = _gen(CHEAP_PROVIDER, prompt, mock_text='{"answer": ')  # malformed JSON in mock
+    # 1) cheap model generates (mock = a deliberately-broken output so the catch fires keyless)
+    cheap_out = _gen(CHEAP_PROVIDER, prompt, mock_text='{"answer": ')  # malformed JSON
     cost += COST["cheap"]
     ok, detail = scenarios.verify(cheap_out, spec, checker)
     trace.append({"step": "generate", "provider": CHEAP_PROVIDER, "role": "cheap",
                   "checker": checker, "ok": ok, "detail": detail, "output": cheap_out})
+    if ok:
+        return {"content": cheap_out, "fixed_by": "cheap", "cost": cost, "advice": None, "trace": trace}
 
-    final, fixed_by, advice = cheap_out, "cheap", None
-    # 2) on failure, escalate ONLY this step to a stronger model on a DIFFERENT provider
-    if not ok:
-        strong_out = _gen(STRONG_PROVIDER, prompt,
-                          mock_text='{"answer": "corrected by the strong model"}')
-        cost += COST["strong"]
-        ok2, detail2 = scenarios.verify(strong_out, spec, checker)
-        trace.append({"step": "escalate", "provider": STRONG_PROVIDER, "role": "strong",
-                      "checker": checker, "ok": ok2, "detail": detail2, "output": strong_out})
-        final = strong_out
-        fixed_by = "assay-escalation" if ok2 else "unrecovered"
-        advice = (f"The cheap model ({CHEAP_PROVIDER}) failed the '{checker}' check ({detail}). "
-                  f"Assay escalated to {STRONG_PROVIDER}. To save cost next time, pin this step "
-                  f"to the strong model or tighten the prompt.")
+    fail = detail
+    # rung 1 — retry the CHEAP model, now told why it failed (cheapest fix)
+    gp = _guidance(prompt, cheap_out, fail)
+    retry_out = _gen(CHEAP_PROVIDER, gp, mock_text='{"answer":')  # mock: still malformed
+    cost += COST["cheap"]
+    ok, detail = scenarios.verify(retry_out, spec, checker)
+    trace.append({"step": "retry-cheap", "provider": CHEAP_PROVIDER, "role": "cheap",
+                  "checker": checker, "ok": ok, "detail": detail, "output": retry_out})
+    if ok:
+        return {"content": retry_out, "fixed_by": "retry-cheap", "cost": cost,
+                "advice": "Cheap model self-corrected once given the reason — no frontier spend.", "trace": trace}
 
-    return {"content": final, "fixed_by": fixed_by, "cost": cost, "advice": advice, "trace": trace}
+    # rung 2 — escalate ONLY this step to a STRONGER model on a DIFFERENT provider, with guidance
+    strong_out = _gen(STRONG_PROVIDER, gp, mock_text=_mock_strong(checker, spec))
+    cost += COST["strong"]
+    ok, detail = scenarios.verify(strong_out, spec, checker)
+    trace.append({"step": "escalate", "provider": STRONG_PROVIDER, "role": "strong",
+                  "checker": checker, "ok": ok, "detail": detail, "output": strong_out})
+    fixed_by = "assay-escalation" if ok else "unrecovered"
+    advice = (f"The cheap model ({CHEAP_PROVIDER}) failed the '{checker}' check ({fail}); a guided "
+              f"retry didn't fix it, so Assay escalated to {STRONG_PROVIDER}. Pin this step type to "
+              f"the strong model, or tighten the prompt.")
+    return {"content": strong_out, "fixed_by": fixed_by, "cost": cost, "advice": advice, "trace": trace}
 
 
 class Handler(BaseHTTPRequestHandler):
