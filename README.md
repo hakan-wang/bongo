@@ -4,8 +4,6 @@ Assay is a hackathon MVP for AI workflow reliability and cost control.
 
 It shows a simple idea: let a cheap model handle a multi-step workflow by default, verify each step deterministically where possible, and escalate only the failed step to a stronger model. In the current demo, that produces the same final correctness as the strong model path while staying 74% cheaper than running the strong model on every step.
 
-Live demo: [assay-demo.vercel.app](https://assay-demo.vercel.app)
-
 ## What the product does
 
 Assay sits inside a multi-step AI workflow and answers one question at every step:
